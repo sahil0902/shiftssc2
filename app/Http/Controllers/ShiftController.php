@@ -23,7 +23,10 @@ class ShiftController extends Controller
             ->paginate(10);
 
         return Inertia::render('Shifts/Index', [
-            'shifts' => $shifts
+            'shifts' => $shifts,
+            'can' => [
+                'create_shift' => Auth::user()->can('create', Shift::class)
+            ]
         ]);
     }
 
@@ -89,7 +92,14 @@ class ShiftController extends Controller
             ]);
 
             return Inertia::render('Shifts/Show', [
-                'shift' => $shift
+                'shift' => $shift,
+                'can' => [
+                    'user' => Auth::user(),
+                    'edit_shift' => Auth::user()->can('update', $shift),
+                    'delete_shift' => Auth::user()->can('delete', $shift),
+                    'apply_shift' => Auth::user()->can('apply', $shift),
+                    'approve_application' => Auth::user()->can('approveApplication', $shift)
+                ]
             ]);
         } catch (\Exception $e) {
             \Log::error('Error in show method:', [

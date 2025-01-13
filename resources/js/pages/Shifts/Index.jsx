@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { DataTable } from '@/Components/DataTable';
 import { Button } from '@/Components/ui/button';
@@ -7,9 +7,11 @@ import { Link } from '@inertiajs/react';
 import { Badge } from '@/Components/ui/badge';
 import { format } from 'date-fns';
 
-export default function Index({ auth, shifts }) {
-    console.log('Received shifts data:', shifts);
+export default function Index({ can = {}, shifts = { data: [], current_page: 1, per_page: 10, last_page: 1, total: 0 } }) {
+    const { user } = usePage().props.auth;
 
+    console.log('Received shifts data:', shifts);
+    console.log('Received can data:', can);
     const columns = [
         {
             accessorKey: 'title',
@@ -76,15 +78,17 @@ export default function Index({ auth, shifts }) {
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
+            user={user}
             header={
                 <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-xl text-gray-800 leading-tight">
                         Shifts
                     </h2>
-                    <Link href={route('shifts.create')}>
-                        <Button>Create Shift</Button>
-                    </Link>
+                    {can.create_shift && (
+                        <Link href={route('shifts.create')}>
+                            <Button>Create Shift</Button>
+                        </Link>
+                    )}
                 </div>
             }
         >
