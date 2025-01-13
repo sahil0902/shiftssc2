@@ -241,4 +241,100 @@ class ShiftController extends Controller
                 ->with('error', 'Error adding comment. Please try again.');
         }
     }
+
+    // New methods for shift acceptance
+    public function acceptShift(Shift $shift)
+    {
+        try {
+            if (!Auth::user()->isEmployee()) {
+                return redirect()->back()
+                    ->with('error', 'Only employees can accept shifts.');
+            }
+
+            $application = $shift->applications()
+                ->where('user_id', Auth::id())
+                ->where('status', 'approved')
+                ->first();
+
+            if (!$application) {
+                return redirect()->back()
+                    ->with('error', 'You cannot accept this shift as your application is not approved.');
+            }
+
+            $application->update(['status' => 'accepted']);
+            $shift->update(['status' => 'filled']);
+
+            return redirect()->back()
+                ->with('success', 'Shift accepted successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error accepting shift:', [
+                'error' => $e->getMessage(),
+                'shift_id' => $shift->id,
+                'user_id' => Auth::id()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Error accepting shift. Please try again.');
+        }
+    }
+
+    public function rejectShift(Shift $shift)
+    {
+        try {
+            if (!Auth::user()->isEmployee()) {
+                return redirect()->back()
+                    ->with('error', 'Only employees can reject shifts.');
+            }
+
+            $application = $shift->applications()
+                ->where('user_id', Auth::id())
+                ->where('status', 'approved')
+                ->first();
+
+            if (!$application) {
+                return redirect()->back()
+                    ->with('error', 'You cannot reject this shift as your application is not approved.');
+            }
+
+            $application->update(['status' => 'rejected']);
+            $shift->update(['status' => 'open']);
+
+            return redirect()->back()
+                ->with('success', 'Shift rejected successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Error rejecting shift:', [
+                'error' => $e->getMessage(),
+                'shift_id' => $shift->id,
+                'user_id' => Auth::id()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Error rejecting shift. Please try again.');
+        }
+    }
+
+    public function myAcceptedShifts()
+    {
+        try {
+            $shifts = Shift::whereHas('applications', function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->where('status', 'accepted');
+            })
+            ->with(['department'])
+            ->latest()
+            ->paginate(10);
+
+            return Inertia::render('Shifts/AcceptedShifts', [
+                'shifts' => $shifts
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching accepted shifts:', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id()
+            ]);
+
+            return redirect()->route('shifts.index')
+                ->with('error', 'Error loading accepted shifts. Please try again.');
+        }
+    }
 }
