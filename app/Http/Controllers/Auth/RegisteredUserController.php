@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Department;
 use App\Models\Organization;
-use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,9 +22,11 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
+        $organization = Organization::where('slug', 'shiftssync-demo')->first();
+        
         return Inertia::render('Auth/Register', [
-            'departments' => Department::all(),
-            'organization' => Organization::where('slug', 'shiftssync-demo')->first()
+            'departments' => Department::where('organization_id', $organization->id)->get(),
+            'organization' => $organization
         ]);
     }
 
@@ -66,6 +67,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        return redirect()->route('dashboard')->with('success', 'Registration successful! Welcome to ShiftsSync.');
     }
 }

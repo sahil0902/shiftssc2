@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Button } from '@/Components/ui/button';
+import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ArrowLeft, Calendar, Clock, Users } from 'lucide-react';
-import { Textarea } from '@/Components/ui/textarea';
-import { Card } from '@/Components/ui/card';
-import { toast } from '@/Components/ui/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { Card } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 // ErrorBoundary Component to catch errors in child components
 class ErrorBoundary extends React.Component {
@@ -72,8 +72,7 @@ export default function Show({ can = {}, shift }) {
     };
 
     const handleClaimShift = () => {
-        toast({
-            title: "Coming Soon!",
+        toast("Coming Soon!", {
             description: "The shift claim feature is currently being developed. Please check back later.",
             duration: 5000,
         });
