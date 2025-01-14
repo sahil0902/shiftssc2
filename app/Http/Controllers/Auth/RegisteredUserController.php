@@ -22,7 +22,13 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        $organization = Organization::where('slug', 'shiftssync-demo')->first();
+        // Get the first organization for testing purposes
+        // In production, this would be determined by the domain/subdomain
+        $organization = Organization::first();
+        
+        if (!$organization) {
+            throw new \Exception('No organization found. Please seed the database first.');
+        }
         
         return Inertia::render('Auth/Register', [
             'departments' => Department::where('organization_id', $organization->id)->get(),
@@ -44,12 +50,8 @@ class RegisteredUserController extends Controller
             'department_id' => 'required|exists:departments,id',
         ]);
 
-        // Get the default organization
-        $organization = Organization::where('slug', 'shiftssync-demo')->first();
-
-        if (!$organization) {
-            throw new \Exception('Default organization not found');
-        }
+        $department = Department::findOrFail($request->department_id);
+        $organization = $department->organization;
 
         $user = User::create([
             'name' => $request->name,
@@ -57,15 +59,14 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'department_id' => $request->department_id,
             'organization_id' => $organization->id,
-            'role' => 'employee',
         ]);
 
-        // Assign the employee role for this organization
-        $user->assignRole('employee-' . $organization->id);
-
-        event(new Registered($user));
+        $roleName = 'employee-' . $organization->id;
+        $user->assignRole($roleName);
 
         Auth::login($user);
+
+        event(new Registered($user));
 
         return redirect()->route('dashboard')->with('success', 'Registration successful! Welcome to ShiftsSync.');
     }

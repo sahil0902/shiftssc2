@@ -29,7 +29,12 @@ export default function Register({ departments }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('register'));
+        post(route('register'), {
+            onSuccess: () => {
+                reset('password', 'password_confirmation');
+            },
+            preserveScroll: true,
+        });
     };
 
     return (
