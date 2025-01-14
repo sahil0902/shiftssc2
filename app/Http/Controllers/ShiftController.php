@@ -34,7 +34,11 @@ class ShiftController extends Controller
             'shifts' => $shifts,
             'can' => [
                 'create_shift' => Auth::user()->role === 'admin'
-            ]
+            ],
+            'flash' => [
+                'success' => session('success'),
+                'error' => session('error')
+            ],
         ]);
     }
 
@@ -54,8 +58,11 @@ class ShiftController extends Controller
     public function store(Request $request)
     {
         if (Auth::user()->role !== 'admin') {
-            return redirect()->route('shifts.index')
-                ->with('error', 'Unauthorized action.');
+            \Log::error('Unauthorized attempt to create shift', [
+                'user_id' => Auth::id(),
+                'role' => Auth::user()->role
+            ]);
+            return back()->with('error', 'Unauthorized action.');
         }
 
         try {
@@ -68,29 +75,51 @@ class ShiftController extends Controller
                 'start_time' => 'required|date',
                 'end_time' => 'required|date|after:start_time',
                 'required_employees' => 'required|integer|min:1',
-                'status' => 'required|in:open,filled,cancelled'
+                'status' => 'required|in:open,filled,cancelled',
+                'hourly_rate' => 'required|numeric|min:0'
             ]);
 
-            // Add user_id to the validated data
-            $validated['user_id'] = Auth::id();
+            \Log::info('Validation passed, validated data:', $validated);
 
-            \Log::info('Validated shift data:', $validated);
+            // Add user_id and organization_id to the validated data
+            $validated['user_id'] = Auth::id();
+            $validated['organization_id'] = Auth::user()->organization_id;
+            
+            // Calculate total hours and wage
+            $startTime = new \DateTime($validated['start_time']);
+            $endTime = new \DateTime($validated['end_time']);
+            $hours = $endTime->diff($startTime)->h + ($endTime->diff($startTime)->days * 24);
+            
+            $validated['total_hours'] = $hours;
+            $validated['total_wage'] = $hours * floatval($validated['hourly_rate']);
+            $validated['hourly_rate'] = floatval($validated['hourly_rate']);
             
             $shift = Shift::create($validated);
             
-            \Log::info('Created shift:', $shift->toArray());
+            \Log::info('Created shift successfully:', $shift->toArray());
 
-            return redirect()->route('shifts.index')
-                ->with('success', 'Shift created successfully.');
+            return redirect()
+                ->route('shifts.index')
+                ->with('success', 'Shift created successfully');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed:', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            return back()
+                ->withErrors($e->errors())
+                ->withInput();
         } catch (\Exception $e) {
             \Log::error('Error creating shift:', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
             ]);
             
-            return redirect()->back()
+            return back()
                 ->withInput()
-                ->with('error', 'Error creating shift. Please try again.');
+                ->with('error', 'Error creating shift: ' . $e->getMessage());
         }
     }
 

@@ -5,15 +5,32 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
 
 class DepartmentController extends Controller
 {
     public function index()
     {
+        $departments = Department::query()
+            ->where('organization_id', auth()->user()->organization_id)
+            ->withCount(['users', 'shifts'])
+            ->orderBy('name')
+            ->paginate(10)
+            ->through(fn ($department) => [
+                'id' => $department->id,
+                'name' => $department->name,
+                'users_count' => $department->users_count,
+                'shifts_count' => $department->shifts_count,
+                'created_at' => $department->created_at,
+                'updated_at' => $department->updated_at,
+            ]);
+
         return Inertia::render('Departments/Index', [
-            'departments' => Department::withCount(['users', 'shifts'])
-                ->latest()
-                ->paginate(10),
+            'departments' => $departments,
+            'flash' => [
+                'success' => session('success'),
+                'error' => session('error')
+            ]
         ]);
     }
 
@@ -25,9 +42,17 @@ class DepartmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:departments',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('departments')->where(function ($query) {
+                    return $query->where('organization_id', auth()->user()->organization_id);
+                })
+            ],
         ]);
 
+        $validated['organization_id'] = auth()->user()->organization_id;
         Department::create($validated);
 
         return redirect()->route('departments.index')

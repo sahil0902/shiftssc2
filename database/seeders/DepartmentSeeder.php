@@ -13,20 +13,24 @@ class DepartmentSeeder extends Seeder
      */
     public function run(): void
     {
-        $departments = [
-            'Engineering',
-            'Marketing',
-            'Sales',
-            'Human Resources',
-            'Finance',
-            'Operations',
-        ];
+        Organization::all()->each(function ($organization) {
+            // Casual shift departments
+            $casualDepartments = [
+                'Retail',
+                'Food Service',
+                'Customer Service',
+                'Warehouse',
+                'Cleaning',
+                'Security',
+                'Events'
+            ];
 
-        Organization::all()->each(function ($organization) use ($departments) {
-            foreach ($departments as $department) {
+            // Create casual departments
+            foreach ($casualDepartments as $name) {
                 Department::create([
-                    'name' => $department,
                     'organization_id' => $organization->id,
+                    'name' => $name,
+                    'allows_casual_shifts' => true
                 ]);
             }
         });
