@@ -13,111 +13,84 @@ class ShiftController extends Controller
 {
     public function index()
     {
-        $shifts = Shift::with(['department'])
-            ->when(Auth::user()->isEmployee(), function ($query) {
-                return $query->whereDoesntHave('applications', function ($q) {
-                    $q->where('user_id', Auth::id());
-                })->where('status', 'open');
+        $user = Auth::user()->load('roles');
+        
+        $shifts = Shift::with(['department', 'user'])
+            ->when($user->hasRole('employee'), function ($query) {
+                return $query->where('status', 'open');
             })
             ->latest()
             ->paginate(10);
 
         return Inertia::render('Shifts/Index', [
             'shifts' => $shifts,
-            'can' => [
-                'create_shift' => Auth::user()->can('create', Shift::class)
+            'auth' => [
+                'user' => array_merge($user->toArray(), [
+                    'roles' => $user->roles->pluck('name')->toArray()
+                ])
             ]
         ]);
     }
 
     public function create()
     {
-        $departments = Department::all();
+        $user = Auth::user()->load('roles');
         return Inertia::render('Shifts/Create', [
-            'departments' => $departments
+            'departments' => Department::all(),
+            'auth' => [
+                'user' => array_merge($user->toArray(), [
+                    'roles' => $user->roles->pluck('name')->toArray()
+                ])
+            ]
         ]);
     }
 
     public function store(Request $request)
     {
-        try {
-            \Log::info('Received shift data:', $request->all());
-            
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'department_id' => 'required|exists:departments,id',
-                'start_time' => 'required|date',
-                'end_time' => 'required|date|after:start_time',
-                'required_employees' => 'required|integer|min:1',
-                'status' => 'required|in:open,filled,cancelled'
-            ]);
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'department_id' => 'required|exists:departments,id',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'required_employees' => 'required|integer|min:1',
+            'status' => 'required|in:open,filled,cancelled'
+        ]);
 
-            // Add user_id to the validated data
-            $validated['user_id'] = Auth::id();
+        $validated['user_id'] = Auth::id();
+        
+        $shift = Shift::create($validated);
 
-            \Log::info('Validated shift data:', $validated);
-            
-            $shift = Shift::create($validated);
-            
-            \Log::info('Created shift:', $shift->toArray());
-
-            return redirect()->route('shifts.index')
-                ->with('success', 'Shift created successfully.');
-        } catch (\Exception $e) {
-            \Log::error('Error creating shift:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error creating shift. Please try again.');
-        }
+        return redirect()->route('shifts.index')
+            ->with('success', 'Shift created successfully.');
     }
 
     public function show(Shift $shift)
     {
-        try {
-            \Log::info('Starting to load shift:', ['shift_id' => $shift->id]);
-            
-            $shift->load(['department', 'applications.user', 'comments.user', 'user']);
-            
-            \Log::info('Loaded shift data:', [
-                'shift' => $shift->toArray(),
-                'has_department' => $shift->department !== null,
-                'has_comments' => $shift->comments !== null,
-                'comments_count' => $shift->comments ? $shift->comments->count() : 0,
-                'has_user' => $shift->user !== null,
-            ]);
-
-            return Inertia::render('Shifts/Show', [
-                'shift' => $shift,
-                'can' => [
-                    'user' => Auth::user(),
-                    'edit_shift' => Auth::user()->can('update', $shift),
-                    'delete_shift' => Auth::user()->can('delete', $shift),
-                    'apply_shift' => Auth::user()->can('apply', $shift),
-                    'approve_application' => Auth::user()->can('approveApplication', $shift)
-                ]
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Error in show method:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            return redirect()->route('shifts.index')
-                ->with('error', 'Error loading shift details. Please try again.');
-        }
+        $user = Auth::user()->load('roles');
+        $shift->load(['department', 'user', 'comments.user', 'claimedBy']);
+        
+        return Inertia::render('Shifts/Show', [
+            'shift' => $shift,
+            'auth' => [
+                'user' => array_merge($user->toArray(), [
+                    'roles' => $user->roles->pluck('name')->toArray()
+                ])
+            ]
+        ]);
     }
 
     public function edit(Shift $shift)
     {
-        $departments = Department::all();
+        $user = Auth::user()->load('roles');
         return Inertia::render('Shifts/Edit', [
             'shift' => $shift,
-            'departments' => $departments
+            'departments' => Department::all(),
+            'auth' => [
+                'user' => array_merge($user->toArray(), [
+                    'roles' => $user->roles->pluck('name')->toArray()
+                ])
+            ]
         ]);
     }
 
@@ -146,99 +119,40 @@ class ShiftController extends Controller
             ->with('success', 'Shift deleted successfully.');
     }
 
-    public function apply(Shift $shift)
+    public function claim(Shift $shift)
     {
-        if (!Auth::user()->isEmployee()) {
-            return redirect()->back()
-                ->with('error', 'Only employees can apply for shifts.');
+        $user = Auth::user()->load('roles');
+        
+        if (!$user->hasRole(['employee', 'Employee'])) {
+            return back()->with('error', 'Only employees can claim shifts.');
         }
 
         if ($shift->status !== 'open') {
-            return redirect()->back()
-                ->with('error', 'This shift is no longer available.');
+            return back()->with('error', 'This shift is no longer available.');
         }
 
-        if ($shift->applications()->where('user_id', Auth::id())->exists()) {
-            return redirect()->back()
-                ->with('error', 'You have already applied for this shift.');
-        }
-
-        $shift->applications()->create([
-            'user_id' => Auth::id(),
-            'status' => 'pending'
+        // Update the shift status and assign it to the current user
+        $shift->update([
+            'status' => 'filled',
+            'claimed_by' => Auth::id(),
+            'claimed_at' => now()
         ]);
 
-        return redirect()->back()
-            ->with('success', 'Application submitted successfully.');
-    }
-
-    public function approveApplication(Shift $shift, Request $request)
-    {
-        if (!Auth::user()->isAdmin()) {
-            return redirect()->back()
-                ->with('error', 'Only administrators can approve applications.');
-        }
-
-        $validated = $request->validate([
-            'application_id' => 'required|exists:shift_applications,id'
-        ]);
-
-        $application = $shift->applications()->findOrFail($validated['application_id']);
-        $application->update(['status' => 'approved']);
-        $shift->update(['status' => 'filled']);
-
-        // Send notification to the approved applicant
-        $application->user->notify(new ShiftApplicationNotification($shift, 'approved'));
-
-        // Reject other applications
-        $shift->applications()
-            ->where('id', '!=', $application->id)
-            ->get()
-            ->each(function ($app) use ($shift) {
-                $app->update(['status' => 'rejected']);
-                $app->user->notify(new ShiftApplicationNotification($shift, 'rejected'));
-            });
-
-        return redirect()->back()
-            ->with('success', 'Application approved successfully.');
+        return back()->with('success', 'Shift claimed successfully.');
     }
 
     public function addComment(Request $request, Shift $shift)
     {
-        try {
-            \Log::info('Adding comment to shift:', [
-                'shift_id' => $shift->id,
-                'user_id' => Auth::id(),
-                'request_data' => $request->all()
-            ]);
+        $validated = $request->validate([
+            'content' => 'required|string'
+        ]);
 
-            $validated = $request->validate([
-                'content' => 'required|string'
-            ]);
+        $comment = $shift->comments()->create([
+            'user_id' => Auth::id(),
+            'content' => $validated['content']
+        ]);
 
-            $comment = $shift->comments()->create([
-                'user_id' => Auth::id(),
-                'content' => $validated['content']
-            ]);
-
-            \Log::info('Comment added successfully:', [
-                'comment_id' => $comment->id,
-                'shift_id' => $shift->id
-            ]);
-
-            return redirect()->back()
-                ->with('success', 'Comment added successfully.');
-        } catch (\Exception $e) {
-            \Log::error('Error adding comment:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'shift_id' => $shift->id,
-                'user_id' => Auth::id()
-            ]);
-
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error adding comment. Please try again.');
-        }
+        return redirect()->back()
+            ->with('success', 'Comment added successfully.');
     }
 }

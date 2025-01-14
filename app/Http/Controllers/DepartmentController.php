@@ -5,21 +5,36 @@ namespace App\Http\Controllers;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class DepartmentController extends Controller
 {
     public function index()
     {
+        $user = Auth::user()->load('roles');
+        
         return Inertia::render('Departments/Index', [
             'departments' => Department::withCount(['users', 'shifts'])
                 ->latest()
                 ->paginate(10),
+            'auth' => [
+                'user' => array_merge($user->toArray(), [
+                    'roles' => $user->roles->pluck('name')->toArray()
+                ])
+            ]
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Departments/Create');
+        $user = Auth::user()->load('roles');
+        return Inertia::render('Departments/Create', [
+            'auth' => [
+                'user' => array_merge($user->toArray(), [
+                    'roles' => $user->roles->pluck('name')->toArray()
+                ])
+            ]
+        ]);
     }
 
     public function store(Request $request)
@@ -36,15 +51,27 @@ class DepartmentController extends Controller
 
     public function show(Department $department)
     {
+        $user = Auth::user()->load('roles');
         return Inertia::render('Departments/Show', [
             'department' => $department->load(['users', 'shifts']),
+            'auth' => [
+                'user' => array_merge($user->toArray(), [
+                    'roles' => $user->roles->pluck('name')->toArray()
+                ])
+            ]
         ]);
     }
 
     public function edit(Department $department)
     {
+        $user = Auth::user()->load('roles');
         return Inertia::render('Departments/Edit', [
             'department' => $department,
+            'auth' => [
+                'user' => array_merge($user->toArray(), [
+                    'roles' => $user->roles->pluck('name')->toArray()
+                ])
+            ]
         ]);
     }
 

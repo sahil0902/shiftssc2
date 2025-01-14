@@ -6,31 +6,35 @@ import { Link, usePage } from "@inertiajs/react"
 
 const getNavigationByRole = (user) => {
   console.log('Current user:', user);
-  console.log('User role:', user?.role);
+  console.log('User roles:', user?.roles);
 
   if (!user) {
     console.log('No user found, returning empty navigation');
     return [];
   }
 
-  // Base navigation for employees
-  const employeeNavigation = [
+  // Base navigation for all authenticated users
+  const baseNavigation = [
     { name: "Dashboard", href: route('dashboard') },
     { name: "Shifts", href: route('shifts.index') },
   ];
 
-  // Additional navigation items for admin only
-  if (user.role === 'admin') {
+  // Check if user has administrator role
+  const isAdmin = user.roles?.includes('administrator');
+
+  console.log('isAdmin:', isAdmin);
+  // Additional navigation items for administrator only
+  if (isAdmin) {
     console.log('Admin user detected, returning admin navigation');
     return [
-      ...employeeNavigation,
+      ...baseNavigation,
       { name: "Departments", href: route('departments.index') },
       { name: "Employees", href: route('employees.index') },
     ];
   }
 
-  console.log('Employee user detected, returning employee navigation');
-  return employeeNavigation;
+  console.log('Regular user detected, returning base navigation');
+  return baseNavigation;
 };
 
 export default function Navbar() {
@@ -39,6 +43,10 @@ export default function Navbar() {
   
   const navigation = getNavigationByRole(auth.user);
   console.log('Generated navigation:', navigation);
+
+  // Helper function to check admin status
+  const isAdmin = auth.user?.roles?.includes('administrator');
+  console.log('Is admin?', isAdmin);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -51,21 +59,15 @@ export default function Navbar() {
         {/* Desktop Navigation - Only show if user is logged in */}
         {auth.user && (
           <div className="hidden md:flex md:gap-x-8">
-            {navigation.map(item => {
-              // Only show admin links if user is admin
-              if ((item.name === "Departments" || item.name === "Employees") && auth.user.role !== 'admin') {
-                return null;
-              }
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-sm font-medium transition-colors hover:text-primary"
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
+            {navigation.map(item => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
+                {item.name}
+              </Link>
+            ))}
           </div>
         )}
 
@@ -80,21 +82,15 @@ export default function Navbar() {
               </SheetTrigger>
               <SheetContent>
                 <div className="flex flex-col gap-4 mt-8">
-                  {navigation.map(item => {
-                    // Only show admin links if user is admin
-                    if ((item.name === "Departments" || item.name === "Employees") && auth.user.role !== 'admin') {
-                      return null;
-                    }
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="text-sm font-medium transition-colors hover:text-primary"
-                      >
-                        {item.name}
-                      </Link>
-                    );
-                  })}
+                  {navigation.map(item => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="text-sm font-medium transition-colors hover:text-primary"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
                 </div>
               </SheetContent>
             </Sheet>
