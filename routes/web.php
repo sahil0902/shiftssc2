@@ -46,9 +46,7 @@ Route::get('/terms', function () {
 
 // Authenticated Routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('shifts', ShiftController::class);
     Route::post('/shifts/{shift}/apply', [ShiftController::class, 'apply'])->name('shifts.apply');
