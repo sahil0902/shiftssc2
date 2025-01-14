@@ -14,9 +14,9 @@ import {
 
 export default function Edit({ auth, employee, departments }) {
     const { data, setData, put, processing, errors } = useForm({
-        name: employee.name,
-        email: employee.email,
-        department_id: employee.department_id,
+        name: employee.name || '',
+        email: employee.email || '',
+        department_id: employee.department_id ? employee.department_id.toString() : '',
         password: '',
         password_confirmation: '',
     });
@@ -88,7 +88,7 @@ export default function Edit({ auth, employee, departments }) {
                                         Department
                                     </label>
                                     <Select
-                                        value={data.department_id.toString()}
+                                        value={data.department_id ? data.department_id.toString() : ''}
                                         onValueChange={(value) =>
                                             setData('department_id', value)
                                         }

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Department;
 use App\Models\Organization;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +23,10 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', [
+            'departments' => Department::all(),
+            'organization' => Organization::where('slug', 'shiftssync-demo')->first()
+        ]);
     }
 
     /**
@@ -33,22 +38,25 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'department_id' => 'required|exists:departments,id',
         ]);
 
-        // Get the default organization (ShiftsSync Demo)
+        // Get the default organization
         $organization = Organization::where('slug', 'shiftssync-demo')->first();
+
         if (!$organization) {
-            $organization = Organization::first();
+            throw new \Exception('Default organization not found');
         }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'department_id' => $request->department_id,
             'organization_id' => $organization->id,
-            'role' => 'employee'
+            'role' => 'employee',
         ]);
 
         // Assign the employee role for this organization
@@ -58,6 +66,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(RouteServiceProvider::HOME);
     }
 }
