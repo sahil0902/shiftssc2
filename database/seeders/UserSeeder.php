@@ -16,33 +16,21 @@ class UserSeeder extends Seeder
             // Get departments for this organization
             $departments = Department::where('organization_id', $organization->id)->get();
 
-            // Create admin users with predictable emails
-            for ($i = 1; $i <= 2; $i++) {
-                User::factory()
-                    ->create([
-                        'organization_id' => $organization->id,
-                        'department_id' => $departments->random()->id, // Assign random department
-                        'password' => Hash::make('password'),
-                        'email' => 'admin' . $i . '@' . $organization->domain,
-                        'name' => 'Admin ' . $i . ' - ' . $organization->name,
-                        'role' => 'admin'
-                    ])
-                    ->assignRole('administrator-' . $organization->id);
-            }
+            // Create admin user with unique email
+            User::factory()->create([
+                'name' => 'Admin - ' . $organization->name,
+                'email' => 'admin' . $organization->id . '@example.com',
+                'department_id' => $departments->random()->id,
+                'organization_id' => $organization->id,
+                'role' => 'admin'
+            ]);
 
-            // Create employee users
-            for ($i = 1; $i <= 5; $i++) {
-                User::factory()
-                    ->create([
-                        'organization_id' => $organization->id,
-                        'department_id' => $departments->random()->id, // Assign random department
-                        'password' => Hash::make('password'),
-                        'email' => 'employee' . $i . '@' . $organization->domain,
-                        'name' => 'Employee ' . $i . ' - ' . $organization->name,
-                        'role' => 'employee'
-                    ])
-                    ->assignRole('employee-' . $organization->id);
-            }
+            // Create 5 regular users with unique emails
+            User::factory()->count(5)->create([
+                'department_id' => $departments->random()->id,
+                'organization_id' => $organization->id,
+                'role' => 'employee'
+            ]);
         });
     }
 } 

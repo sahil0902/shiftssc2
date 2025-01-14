@@ -5,6 +5,7 @@ import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { useForm } from '@inertiajs/react';
 import { useRef } from 'react';
+import { toast } from 'sonner';
 
 export default function UpdatePasswordForm({ className = '' }) {
     const passwordInput = useRef();
@@ -27,16 +28,42 @@ export default function UpdatePasswordForm({ className = '' }) {
     const updatePassword = (e) => {
         e.preventDefault();
 
+        // Validation checks
+        if (data.password !== data.password_confirmation) {
+            toast.error('Password Mismatch', {
+                description: 'Your new password and confirmation must match exactly.'
+            });
+            return;
+        }
+
+        if (data.password === data.current_password) {
+            toast.error('Same Password', {
+                description: 'Your new password must be different from your current password.'
+            });
+            return;
+        }
+
         put(route('password.update'), {
             preserveScroll: true,
-            onSuccess: () => reset(),
+            onSuccess: () => {
+                reset();
+                toast.success('Password Updated', {
+                    description: 'Your password has been updated successfully.'
+                });
+            },
             onError: (errors) => {
                 if (errors.password) {
+                    toast.error('Password Error', {
+                        description: errors.password
+                    });
                     reset('password', 'password_confirmation');
                     passwordInput.current.focus();
                 }
 
                 if (errors.current_password) {
+                    toast.error('Current Password Error', {
+                        description: 'The current password you entered is incorrect.'
+                    });
                     reset('current_password');
                     currentPasswordInput.current.focus();
                 }
@@ -63,7 +90,9 @@ export default function UpdatePasswordForm({ className = '' }) {
                         htmlFor="current_password"
                         value="Current Password"
                     />
-
+                    <p className="text-sm text-gray-500 mb-2">
+                        Enter your existing password
+                    </p>
                     <TextInput
                         id="current_password"
                         ref={currentPasswordInput}
@@ -74,6 +103,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         type="password"
                         className="mt-1 block w-full"
                         autoComplete="current-password"
+                        placeholder="Your current password"
                     />
 
                     <InputError
@@ -84,7 +114,9 @@ export default function UpdatePasswordForm({ className = '' }) {
 
                 <div>
                     <InputLabel htmlFor="password" value="New Password" />
-
+                    <p className="text-sm text-gray-500 mb-2">
+                        Choose a new, secure password different from your current one
+                    </p>
                     <TextInput
                         id="password"
                         ref={passwordInput}
@@ -93,6 +125,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         type="password"
                         className="mt-1 block w-full"
                         autoComplete="new-password"
+                        placeholder="Your new password"
                     />
 
                     <InputError message={errors.password} className="mt-2" />
@@ -101,9 +134,11 @@ export default function UpdatePasswordForm({ className = '' }) {
                 <div>
                     <InputLabel
                         htmlFor="password_confirmation"
-                        value="Confirm Password"
+                        value="Confirm New Password"
                     />
-
+                    <p className="text-sm text-gray-500 mb-2">
+                        Re-enter your new password exactly as above
+                    </p>
                     <TextInput
                         id="password_confirmation"
                         value={data.password_confirmation}
@@ -113,6 +148,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         type="password"
                         className="mt-1 block w-full"
                         autoComplete="new-password"
+                        placeholder="Confirm your new password"
                     />
 
                     <InputError
@@ -122,7 +158,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <PrimaryButton disabled={processing}>Update Password</PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}

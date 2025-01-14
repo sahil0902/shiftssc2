@@ -12,7 +12,7 @@ class CreateOrganizationsTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->string('domain')->unique();
+            $table->string('domain')->nullable();
             $table->string('logo_path')->nullable();
             $table->json('settings')->nullable();
             $table->timestamps();

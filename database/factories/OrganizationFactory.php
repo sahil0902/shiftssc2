@@ -2,35 +2,24 @@
 
 namespace Database\Factories;
 
+use App\Models\Organization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 class OrganizationFactory extends Factory
 {
+    protected $model = Organization::class;
+
     public function definition(): array
     {
-        $name = $this->faker->unique()->company();
-        $slug = Str::slug($name);
-        
+        $name = $this->faker->company();
         return [
             'name' => $name,
-            'slug' => $slug,
-            'domain' => $slug . '.example.com',
-            'logo_path' => null,
+            'slug' => Str::slug($name),
             'settings' => [
-                'theme' => [
-                    'primary_color' => $this->faker->hexColor(),
-                    'secondary_color' => $this->faker->hexColor(),
-                ],
-                'notifications' => [
-                    'email' => true,
-                    'slack' => false,
-                ],
-                'shift_settings' => [
-                    'min_hours' => 4,
-                    'max_hours' => 12,
-                    'break_duration' => 1,
-                ],
+                'allow_shift_swaps' => true,
+                'require_manager_approval' => true,
+                'default_hourly_rate' => $this->faker->randomFloat(2, 15, 50),
             ],
         ];
     }

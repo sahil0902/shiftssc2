@@ -48,9 +48,7 @@ class DashboardController extends Controller
             $stats = [
                 'totalShifts' => Shift::where('organization_id', $user->organization_id)->count(),
                 'totalEmployees' => User::where('organization_id', $user->organization_id)
-                    ->whereHas('roles', function($query) {
-                        $query->where('name', 'like', 'employee-%');
-                    })
+                    ->where('role', 'employee')
                     ->count(),
                 'totalDepartments' => Department::where('organization_id', $user->organization_id)->count(),
                 'openShifts' => Shift::where('organization_id', $user->organization_id)

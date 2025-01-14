@@ -24,6 +24,9 @@ return new class extends Migration
             $table->boolean('allows_casual_shifts')->default(true);
             $table->timestamps();
             $table->softDeletes();
+
+            // Add unique constraint for name within organization
+            $table->unique(['organization_id', 'name']);
         });
 
         // Recreate users table with department_id
