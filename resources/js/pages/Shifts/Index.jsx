@@ -1,15 +1,32 @@
-import React from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import React, { useEffect } from 'react';
+import { Head, usePage, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { DataTable } from '@/Components/DataTable';
 import { Button } from '@/Components/ui/button';
 import { Link } from '@inertiajs/react';
 import { Badge } from '@/Components/ui/badge';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 export default function Index({ can = {}, shifts = { data: [], current_page: 1, per_page: 10, last_page: 1, total: 0 } }) {
-    const { user } = usePage().props.auth;
+    const { auth, flash } = usePage().props;
 
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
+        }
+        if (flash?.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
+    const handleDelete = (id) => {
+        if (confirm('Are you sure you want to delete this shift? This action cannot be undone.')) {
+            router.delete(route('shifts.destroy', id));
+        }
+    };
+
+    console.log('Flash messages:', flash);
     console.log('Received shifts data:', shifts);
     console.log('Received can data:', can);
     const columns = [
@@ -64,13 +81,21 @@ export default function Index({ can = {}, shifts = { data: [], current_page: 1, 
                         >
                             View
                         </Link>
-                        {can.update_shift && (
-                        <Link
-                            href={route('shifts.edit', row.original.id)}
-                            className="text-yellow-600 hover:text-yellow-800"
-                        >
-                                Edit
-                            </Link>
+                        {can.create_shift && (
+                            <>
+                                <Link
+                                    href={route('shifts.edit', row.original.id)}
+                                    className="text-yellow-600 hover:text-yellow-800"
+                                >
+                                    Edit
+                                </Link>
+                                <button
+                                    onClick={() => handleDelete(row.original.id)}
+                                    className="text-red-600 hover:text-red-800"
+                                >
+                                    Delete
+                                </button>
+                            </>
                         )}
                     </div>
                 );
@@ -80,7 +105,7 @@ export default function Index({ can = {}, shifts = { data: [], current_page: 1, 
 
     return (
         <AuthenticatedLayout
-            user={user}
+            user={auth.user}
             header={
                 <div className="flex items-center justify-between">
                     <h2 className="font-semibold text-xl text-gray-800 leading-tight">

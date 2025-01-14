@@ -11,21 +11,10 @@ class Shift extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'department_id',
-        'organization_id',
-        'title',
-        'description',
-        'start_time',
-        'end_time',
-        'required_employees',
-        'hourly_rate',
-        'status',
-        'total_hours',
-        'total_wage'
+    protected $guarded = [
+        'id', // Assuming 'id' should not be mass assignable
     ];
-
+    
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',

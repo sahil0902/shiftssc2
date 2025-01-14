@@ -20,6 +20,7 @@ class DashboardController extends Controller
         // Charts data - available for both admin and employees
         $shiftStats = [
             'byDepartment' => Department::select('departments.name', DB::raw('COALESCE(COUNT(shifts.id), 0) as count'))
+                ->where('departments.organization_id', $user->organization_id)
                 ->leftJoin('shifts', 'departments.id', '=', 'shifts.department_id')
                 ->groupBy('departments.id', 'departments.name')
                 ->get()
@@ -30,6 +31,7 @@ class DashboardController extends Controller
                     ];
                 }),
             'byStatus' => Shift::select('status', DB::raw('count(*) as count'))
+                ->where('shifts.organization_id', $user->organization_id)
                 ->groupBy('status')
                 ->orderBy('status')
                 ->get()
@@ -44,10 +46,16 @@ class DashboardController extends Controller
         if ($isAdmin) {
             // Admin stats
             $stats = [
-                'totalShifts' => Shift::count(),
-                'totalEmployees' => User::where('role', 'employee')->count(),
-                'totalDepartments' => Department::count(),
-                'openShifts' => Shift::where('status', 'open')->count(),
+                'totalShifts' => Shift::where('organization_id', $user->organization_id)->count(),
+                'totalEmployees' => User::where('organization_id', $user->organization_id)
+                    ->whereHas('roles', function($query) {
+                        $query->where('name', 'like', 'employee-%');
+                    })
+                    ->count(),
+                'totalDepartments' => Department::where('organization_id', $user->organization_id)->count(),
+                'openShifts' => Shift::where('organization_id', $user->organization_id)
+                    ->where('status', 'open')
+                    ->count(),
             ];
 
             return Inertia::render('Dashboard', [
@@ -74,7 +82,9 @@ class DashboardController extends Controller
 
             // Get shifts from user's department
             $departmentShifts = Shift::with('department')
+                ->where('organization_id', $user->organization_id)
                 ->where('department_id', $user->department_id)
+                ->where('status', 'open')
                 ->latest()
                 ->take(5)
                 ->get()
@@ -92,7 +102,9 @@ class DashboardController extends Controller
 
             // Get shifts from other departments
             $otherShifts = Shift::with('department')
+                ->where('organization_id', $user->organization_id)
                 ->where('department_id', '!=', $user->department_id)
+                ->where('status', 'open')
                 ->latest()
                 ->take(5)
                 ->get()

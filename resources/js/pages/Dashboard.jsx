@@ -5,6 +5,7 @@ import { Button } from '@/Components/ui/button';
 import { Link } from '@inertiajs/react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Users, Building2, ClipboardList, Clock, DollarSign, Plus, Calendar, ArrowRight } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function Dashboard({ auth, shiftStats, departmentShifts, otherShifts, stats }) {
     const isAdmin = auth.user.role === 'admin';
@@ -119,43 +120,8 @@ export default function Dashboard({ auth, shiftStats, departmentShifts, otherShi
                                 </Card>
                             </>
                         ) : (
-                            <>
-                                <Card className="p-4 flex items-center space-x-4">
-                                    <div className="p-3 bg-blue-100 rounded-full">
-                                        <ClipboardList className="h-6 w-6 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Approved Shifts</p>
-                                        <p className="text-2xl font-semibold">{stats.approvedShifts}</p>
-                                    </div>
-                                </Card>
-                                <Card className="p-4 flex items-center space-x-4">
-                                    <div className="p-3 bg-green-100 rounded-full">
-                                        <ClipboardList className="h-6 w-6 text-green-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Total Applications</p>
-                                        <p className="text-2xl font-semibold">{stats.totalApplications}</p>
-                                    </div>
-                                </Card>
-                                <Card className="p-4 flex items-center space-x-4">
-                                    <div className="p-3 bg-purple-100 rounded-full">
-                                        <Clock className="h-6 w-6 text-purple-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Total Hours</p>
-                                        <p className="text-2xl font-semibold">{stats.totalHours}</p>
-                                    </div>
-                                </Card>
-                                <Card className="p-4 flex items-center space-x-4">
-                                    <div className="p-3 bg-yellow-100 rounded-full">
-                                        <DollarSign className="h-6 w-6 text-yellow-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-500">Total Earnings</p>
-                                        <p className="text-2xl font-semibold">${stats.totalEarnings}</p>
-                                    </div>
-                                </Card>
+                    
+                              <>
                             </>
                         )}
                     </div>
@@ -210,26 +176,28 @@ export default function Dashboard({ auth, shiftStats, departmentShifts, otherShi
                                 </div>
                                 <div className="space-y-4">
                                     {departmentShifts.map((shift) => (
-                                        <Card key={shift.id} className="p-4">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <h4 className="font-semibold">{shift.title}</h4>
-                                                    <p className="text-sm text-gray-500">{shift.description}</p>
-                                                    <div className="mt-2 text-sm">
-                                                        <p>Start: {shift.start_time}</p>
-                                                        <p>Duration: {shift.duration} hours</p>
-                                                        <p>Rate: {shift.formatted_hourly_rate}/hr</p>
+                                        <Link key={shift.id} href={route('shifts.show', shift.id)}>
+                                            <Card className="p-4 hover:shadow-md transition-shadow">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-semibold">{shift.title}</h4>
+                                                        <p className="text-sm text-gray-500">{shift.description}</p>
+                                                        <div className="mt-2 text-sm">
+                                                            <p>Start: {format(new Date(shift.start_time), 'PPp')}</p>
+                                                            <p>End: {format(new Date(shift.end_time), 'PPp')}</p>
+                                                            <p>Rate: {shift.formatted_hourly_rate}/hr</p>
+                                                        </div>
                                                     </div>
+                                                    <span className={`px-2 py-1 rounded text-sm ${
+                                                        shift.status === 'open' ? 'bg-green-100 text-green-800' :
+                                                        shift.status === 'filled' ? 'bg-blue-100 text-blue-800' :
+                                                        'bg-red-100 text-red-800'
+                                                    }`}>
+                                                        {shift.status.charAt(0).toUpperCase() + shift.status.slice(1)}
+                                                    </span>
                                                 </div>
-                                                <span className={`px-2 py-1 rounded text-sm ${
-                                                    shift.status === 'open' ? 'bg-green-100 text-green-800' :
-                                                    shift.status === 'filled' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-red-100 text-red-800'
-                                                }`}>
-                                                    {shift.status}
-                                                </span>
-                                            </div>
-                                        </Card>
+                                            </Card>
+                                        </Link>
                                     ))}
                                 </div>
                             </div>
@@ -246,26 +214,28 @@ export default function Dashboard({ auth, shiftStats, departmentShifts, otherShi
                                 </div>
                                 <div className="space-y-4">
                                     {otherShifts.map((shift) => (
-                                        <Card key={shift.id} className="p-4">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <h4 className="font-semibold">{shift.title}</h4>
-                                                    <p className="text-sm text-gray-500">{shift.description}</p>
-                                                    <div className="mt-2 text-sm">
-                                                        <p>Start: {shift.start_time}</p>
-                                                        <p>Duration: {shift.duration} hours</p>
-                                                        <p>Rate: {shift.formatted_hourly_rate}/hr</p>
+                                        <Link key={shift.id} href={route('shifts.show', shift.id)}>
+                                            <Card className="p-4 hover:shadow-md transition-shadow">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-semibold">{shift.title}</h4>
+                                                        <p className="text-sm text-gray-500">{shift.description}</p>
+                                                        <div className="mt-2 text-sm">
+                                                            <p>Start: {format(new Date(shift.start_time), 'PPp')}</p>
+                                                            <p>End: {format(new Date(shift.end_time), 'PPp')}</p>
+                                                            <p>Rate: {shift.formatted_hourly_rate}/hr</p>
+                                                        </div>
                                                     </div>
+                                                    <span className={`px-2 py-1 rounded text-sm ${
+                                                        shift.status === 'open' ? 'bg-green-100 text-green-800' :
+                                                        shift.status === 'filled' ? 'bg-blue-100 text-blue-800' :
+                                                        'bg-red-100 text-red-800'
+                                                    }`}>
+                                                        {shift.status.charAt(0).toUpperCase() + shift.status.slice(1)}
+                                                    </span>
                                                 </div>
-                                                <span className={`px-2 py-1 rounded text-sm ${
-                                                    shift.status === 'open' ? 'bg-green-100 text-green-800' :
-                                                    shift.status === 'filled' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-red-100 text-red-800'
-                                                }`}>
-                                                    {shift.status}
-                                                </span>
-                                            </div>
-                                        </Card>
+                                            </Card>
+                                        </Link>
                                     ))}
                                 </div>
                             </div>
