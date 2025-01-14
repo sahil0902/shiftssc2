@@ -5,27 +5,81 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Shift extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'user_id',
         'department_id',
+        'organization_id',
         'title',
         'description',
         'start_time',
         'end_time',
         'required_employees',
+        'hourly_rate',
         'status',
+        'total_hours',
+        'total_wage'
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
         'end_time' => 'datetime',
+        'hourly_rate' => 'decimal:2',
+        'total_hours' => 'decimal:2',
+        'total_wage' => 'decimal:2'
     ];
+
+    protected $appends = [
+        'formatted_hourly_rate',
+        'formatted_total_wage'
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($shift) {
+            // Calculate total hours and wage before saving
+            $shift->calculateTotals();
+        });
+    }
+
+    public function calculateTotals()
+    {
+        if ($this->start_time && $this->end_time) {
+            // Use abs() to ensure positive duration
+            $this->total_hours = abs($this->end_time->diffInHours($this->start_time));
+            $this->total_wage = $this->total_hours * $this->hourly_rate;
+        }
+    }
+
+    public function getDurationAttribute()
+    {
+        if ($this->start_time && $this->end_time) {
+            return abs($this->end_time->diffInHours($this->start_time));
+        }
+        return 0;
+    }
+
+    public function getTotalWageAttribute()
+    {
+        return $this->duration * $this->hourly_rate;
+    }
+
+    public function getFormattedHourlyRateAttribute(): string
+    {
+        return '£' . number_format($this->hourly_rate, 2);
+    }
+
+    public function getFormattedTotalWageAttribute(): string
+    {
+        return '£' . number_format($this->total_wage, 2);
+    }
 
     public function user(): BelongsTo
     {
@@ -37,20 +91,18 @@ class Shift extends Model
         return $this->belongsTo(Department::class);
     }
 
-    public function applications()
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    public function applications(): HasMany
     {
         return $this->hasMany(ShiftApplication::class);
     }
 
-    public function applicants()
+    public function comments(): HasMany
     {
-        return $this->belongsToMany(User::class, 'shift_applications')
-            ->withPivot(['status'])
-            ->withTimestamps();
-    }
-
-    public function comments()
-    {
-        return $this->hasMany(ShiftComment::class)->with('user')->latest();
+        return $this->hasMany(ShiftComment::class);
     }
 } 

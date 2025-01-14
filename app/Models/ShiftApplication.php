@@ -12,7 +12,14 @@ class ShiftApplication extends Model
     protected $fillable = [
         'user_id',
         'shift_id',
-        'status'
+        'status',
+        'notes',
+        'reviewed_at',
+        'reviewed_by'
+    ];
+
+    protected $casts = [
+        'reviewed_at' => 'datetime',
     ];
 
     public function user()
@@ -23,5 +30,10 @@ class ShiftApplication extends Model
     public function shift()
     {
         return $this->belongsTo(Shift::class);
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 } 

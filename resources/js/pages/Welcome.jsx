@@ -90,17 +90,17 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                 <div className="mx-auto max-w-7xl px-6 pb-24 pt-16 sm:pb-32 lg:px-8">
                     <div className="mx-auto max-w-2xl text-center">
                         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-                            Streamline Your Workforce Management
+                            Effortless Shift Management, Empowered Teams
                         </h1>
                         <p className="mt-6 text-lg leading-8 text-muted-foreground">
-                            The most comprehensive shift management solution for
-                            modern businesses. Simplify scheduling, enhance
-                            communication, and boost productivity.
+                            Transform your workforce scheduling with ShiftsSync. 
+                            Smart scheduling, real-time coordination, and powerful insights 
+                            to help your team work better together.
                         </p>
                         <div className="mt-10 flex items-center justify-center gap-x-6">
                             <Link href={route("register")}>
                                 <Button size="lg" className="rounded-full">
-                                    Start Free Trial
+                                    Start Your Journey
                                     <ArrowRight className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>

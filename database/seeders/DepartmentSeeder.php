@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Department;
+use App\Models\Organization;
 use Illuminate\Database\Seeder;
 
 class DepartmentSeeder extends Seeder
@@ -21,10 +22,13 @@ class DepartmentSeeder extends Seeder
             'Operations',
         ];
 
-        foreach ($departments as $department) {
-            Department::create([
-                'name' => $department,
-            ]);
-        }
+        Organization::all()->each(function ($organization) use ($departments) {
+            foreach ($departments as $department) {
+                Department::create([
+                    'name' => $department,
+                    'organization_id' => $organization->id,
+                ]);
+            }
+        });
     }
 } 
