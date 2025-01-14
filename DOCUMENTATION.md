@@ -12,6 +12,7 @@
 
 ## System Overview
 
+
 ShiftSync is a shift management system built with Laravel (backend) and React/Inertia.js (frontend). It features:
 - Multi-tenant architecture with organization support
 - Role-based access control

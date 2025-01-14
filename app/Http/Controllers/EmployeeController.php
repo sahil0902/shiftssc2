@@ -12,11 +12,25 @@ class EmployeeController extends Controller
 {
     public function index()
     {
+        $employees = User::where('role', 'employee')
+            ->with('department')
+            ->latest()
+            ->paginate(10)
+            ->through(function ($employee) {
+                return [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'email' => $employee->email,
+                    'department' => $employee->department ? [
+                        'id' => $employee->department->id,
+                        'name' => $employee->department->name,
+                    ] : null,
+                    'created_at' => $employee->created_at,
+                ];
+            });
+
         return Inertia::render('Employees/Index', [
-            'employees' => User::where('role', 'employee')
-                ->with('department')
-                ->latest()
-                ->paginate(10),
+            'employees' => $employees,
         ]);
     }
 
@@ -56,7 +70,7 @@ class EmployeeController extends Controller
     public function edit(User $employee)
     {
         return Inertia::render('Employees/Edit', [
-            'employee' => $employee,
+            'employee' => $employee->load('department'),
             'departments' => Department::all(),
         ]);
     }

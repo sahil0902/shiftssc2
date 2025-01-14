@@ -14,7 +14,7 @@ class ShiftController extends Controller
     public function index()
     {
         $shifts = Shift::with(['department'])
-            ->when(Auth::user()->isEmployee(), function ($query) {
+            ->when(Auth::user()->role === 'employee', function ($query) {
                 return $query->whereDoesntHave('applications', function ($q) {
                     $q->where('user_id', Auth::id());
                 })->where('status', 'open');
@@ -33,14 +33,14 @@ class ShiftController extends Controller
         return Inertia::render('Shifts/Index', [
             'shifts' => $shifts,
             'can' => [
-                'create_shift' => Auth::user()->hasRole('administrator')
+                'create_shift' => Auth::user()->role === 'admin'
             ]
         ]);
     }
 
     public function create()
     {
-        if (!Auth::user()->hasRole('administrator')) {
+        if (Auth::user()->role !== 'admin') {
             return redirect()->route('shifts.index')
                 ->with('error', 'Unauthorized action.');
         }
@@ -53,7 +53,7 @@ class ShiftController extends Controller
 
     public function store(Request $request)
     {
-        if (!Auth::user()->hasRole('administrator')) {
+        if (Auth::user()->role !== 'admin') {
             return redirect()->route('shifts.index')
                 ->with('error', 'Unauthorized action.');
         }
@@ -121,10 +121,10 @@ class ShiftController extends Controller
                 'shift' => $shiftData,
                 'can' => [
                     'user' => Auth::user(),
-                    'edit_shift' => Auth::user()->hasRole('administrator'),
-                    'delete_shift' => Auth::user()->hasRole('administrator'),
-                    'apply_shift' => Auth::user()->hasRole('employee'),
-                    'approve_application' => Auth::user()->hasRole('administrator')
+                    'edit_shift' => Auth::user()->role === 'admin',
+                    'delete_shift' => Auth::user()->role === 'admin',
+                    'apply_shift' => Auth::user()->role === 'employee',
+                    'approve_application' => Auth::user()->role === 'admin'
                 ]
             ]);
         } catch (\Exception $e) {
@@ -140,7 +140,7 @@ class ShiftController extends Controller
 
     public function edit(Shift $shift)
     {
-        if (!Auth::user()->hasRole('administrator')) {
+        if (Auth::user()->role !== 'admin') {
             return redirect()->route('shifts.index')
                 ->with('error', 'Unauthorized action.');
         }
@@ -154,7 +154,7 @@ class ShiftController extends Controller
 
     public function update(Request $request, Shift $shift)
     {
-        if (!Auth::user()->hasRole('administrator')) {
+        if (Auth::user()->role !== 'admin') {
             return redirect()->route('shifts.index')
                 ->with('error', 'Unauthorized action.');
         }
@@ -176,7 +176,7 @@ class ShiftController extends Controller
 
     public function destroy(Shift $shift)
     {
-        if (!Auth::user()->hasRole('administrator')) {
+        if (Auth::user()->role !== 'admin') {
             return redirect()->route('shifts.index')
                 ->with('error', 'Unauthorized action.');
         }
@@ -189,7 +189,7 @@ class ShiftController extends Controller
 
     public function apply(Shift $shift)
     {
-        if (!Auth::user()->hasRole('employee')) {
+        if (Auth::user()->role !== 'employee') {
             return redirect()->back()
                 ->with('error', 'Only employees can apply for shifts.');
         }
@@ -215,7 +215,7 @@ class ShiftController extends Controller
 
     public function approveApplication(Shift $shift, Request $request)
     {
-        if (!Auth::user()->hasRole('administrator')) {
+        if (Auth::user()->role !== 'admin') {
             return redirect()->back()
                 ->with('error', 'Only administrators can approve applications.');
         }
