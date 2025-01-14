@@ -7,10 +7,16 @@ export function Footer() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className="text-lg font-semibold mb-4">About Us</h3>
-            <p className="text-sm text-muted-foreground">
-              ShiftMaster is your comprehensive solution for employee shift management,
+            <p className="text-sm text-muted-foreground mb-4">
+              ShiftsSync is your comprehensive solution for employee shift management,
               making scheduling and coordination effortless.
             </p>
+            <Link
+              href={route('about')}
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
+              Learn More →
+            </Link>
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
@@ -31,26 +37,42 @@ export function Footer() {
                   Shifts
                 </Link>
               </li>
+              <li>
+                <Link
+                  href={route('about')}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  About Us
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4">Support</h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
+                <Link
+                  href={route('help')}
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Help Center
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href={route('contact')}
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Contact Us
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={route('faq')}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  FAQ
+                </Link>
               </li>
             </ul>
           </div>
@@ -58,27 +80,27 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
+                <Link
+                  href={route('privacy')}
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href={route('terms')}
                   className="text-sm text-muted-foreground hover:text-primary"
                 >
                   Terms of Service
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ShiftMaster. All rights reserved.
+            © {new Date().getFullYear()} ShiftsSync. All rights reserved.
           </p>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { ArrowLeft, Calendar, Clock, Users } from 'lucide-react';
 import { Textarea } from '@/Components/ui/textarea';
 import { Card } from '@/Components/ui/card';
+import { toast } from '@/Components/ui/use-toast';
 
 // ErrorBoundary Component to catch errors in child components
 class ErrorBoundary extends React.Component {
@@ -53,11 +54,28 @@ export default function Show({ can = {}, shift }) {
             onSuccess: () => {
                 console.log('Comment submitted successfully');
                 reset('content');
+                toast({
+                    title: "Success",
+                    description: "Comment added successfully",
+                });
             },
             onError: (errors) => {
                 console.error('Comment submission errors:', errors);
+                toast({
+                    title: "Error",
+                    description: "Failed to add comment",
+                    variant: "destructive",
+                });
             },
             preserveScroll: true,
+        });
+    };
+
+    const handleClaimShift = () => {
+        toast({
+            title: "Coming Soon!",
+            description: "The shift claim feature is currently being developed. Please check back later.",
+            duration: 5000,
         });
     };
 
@@ -101,11 +119,18 @@ export default function Show({ can = {}, shift }) {
                                 Shift Details
                             </h2>
                         </div>
-                        {can.edit_shift && (
-                            <Link href={route('shifts.edit', shift.id)}>
-                                <Button>Edit Shift</Button>
-                            </Link>
-                        )}
+                        <div className="flex gap-2">
+                            {shift.status === 'open' && (
+                                <Button onClick={handleClaimShift} variant="secondary">
+                                    Claim Shift
+                                </Button>
+                            )}
+                            {can.edit_shift && (
+                                <Link href={route('shifts.edit', shift.id)}>
+                                    <Button>Edit Shift</Button>
+                                </Link>
+                            )}
+                        </div>
                     </div>
                 }
             >
@@ -166,6 +191,23 @@ export default function Show({ can = {}, shift }) {
                                                     </p>
                                                 </div>
                                             </div>
+
+                                            <div className="mt-6 rounded-lg bg-gray-50 p-4">
+                                                <h4 className="text-sm font-medium text-gray-900">
+                                                    Wage Information
+                                                </h4>
+                                                <div className="mt-2 space-y-2">
+                                                    <p className="text-sm text-gray-500">
+                                                        Hourly Rate: {shift.formatted_hourly_rate}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">
+                                                        Shift Duration: {shift.duration_in_hours.toFixed(2)} hours
+                                                    </p>
+                                                    <p className="text-sm font-medium text-gray-900">
+                                                        Total Wage: {shift.formatted_total_wage}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -221,6 +263,12 @@ export default function Show({ can = {}, shift }) {
 
                                 {/* Comments Section */}
                                 <div className="mt-8">
+                                    <div className="mb-4 rounded-md bg-blue-50 p-4">
+                                        <p className="text-sm text-blue-700">
+                                            Please add a comment, and your manager will contact you if you get the shift.
+                                        </p>
+                                    </div>
+                                    
                                     <h3 className="text-lg font-medium">Comments</h3>
                                     <div className="mt-4 space-y-4">
                                         {shift.comments && shift.comments.length > 0 ? (

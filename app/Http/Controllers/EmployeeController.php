@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class EmployeeController extends Controller
 {
@@ -36,7 +37,10 @@ class EmployeeController extends Controller
         ]);
 
         $validated['role'] = 'employee';
-        User::create($validated);
+        $validated['organization_id'] = Auth::user()->organization_id;
+        
+        $user = User::create($validated);
+        $user->assignRole('employee-' . Auth::user()->organization_id);
 
         return redirect()->route('employees.index')
             ->with('success', 'Employee created successfully.');

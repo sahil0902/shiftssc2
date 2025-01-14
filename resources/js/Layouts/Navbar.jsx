@@ -45,14 +45,13 @@ export default function Navbar() {
       <nav className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <CalendarClock className="h-6 w-6" />
-          <span className="text-xl font-bold">ShiftMaster</span>
+          <span className="text-xl font-bold">ShiftsSync</span>
         </div>
 
         {/* Desktop Navigation - Only show if user is logged in */}
         {auth.user && (
           <div className="hidden md:flex md:gap-x-8">
             {navigation.map(item => {
-              // Only show admin links if user is admin
               if ((item.name === "Departments" || item.name === "Employees") && auth.user.role !== 'admin') {
                 return null;
               }
@@ -80,8 +79,15 @@ export default function Navbar() {
               </SheetTrigger>
               <SheetContent>
                 <div className="flex flex-col gap-4 mt-8">
+                  {/* User Info */}
+                  <div className="pb-4 mb-4 border-b">
+                    <span className="text-sm text-muted-foreground">
+                      Signed in as: {auth.user.name}
+                    </span>
+                  </div>
+
+                  {/* Navigation Links */}
                   {navigation.map(item => {
-                    // Only show admin links if user is admin
                     if ((item.name === "Departments" || item.name === "Employees") && auth.user.role !== 'admin') {
                       return null;
                     }
@@ -95,13 +101,31 @@ export default function Navbar() {
                       </Link>
                     );
                   })}
+
+                  {/* Profile and Logout */}
+                  <div className="pt-4 mt-4 border-t">
+                    <Link 
+                      href={route('profile.edit')} 
+                      className="block text-sm font-medium transition-colors hover:text-primary mb-4"
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href={route('logout')}
+                      method="post"
+                      as="button"
+                      className="block w-full text-left text-sm font-medium text-destructive transition-colors hover:text-destructive/80"
+                    >
+                      Logout
+                    </Link>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         )}
 
-        {/* User Menu */}
+        {/* Desktop User Menu */}
         {auth.user ? (
           <div className="hidden md:flex md:items-center md:gap-4">
             <span className="text-sm text-muted-foreground">

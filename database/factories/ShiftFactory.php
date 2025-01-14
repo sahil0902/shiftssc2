@@ -3,77 +3,78 @@
 namespace Database\Factories;
 
 use App\Models\Department;
-use App\Models\Organization;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ShiftFactory extends Factory
 {
     public function definition(): array
     {
-        $startDate = $this->faker->dateTimeBetween('now', '+30 days');
-        $startTime = $this->faker->dateTimeBetween('08:00:00', '20:00:00');
-        $endTime = clone $startTime;
-        $endTime->modify('+' . $this->faker->numberBetween(2, 8) . ' hours');
+        // Generate start time between now and next month, always rounding to nearest hour
+        $startTime = Carbon::instance($this->faker->dateTimeBetween('now', '+1 month'))
+            ->startOfHour();
+        
+        // Ensure start time is in the future
+        if ($startTime->isPast()) {
+            $startTime = Carbon::now()->addHours(rand(1, 24))->startOfHour();
+        }
 
-        $skills = [
-            'customer_service',
-            'communication',
-            'problem_solving',
-            'teamwork',
-            'time_management',
-            'technical_skills',
-            'leadership',
-            'organization',
-            'attention_to_detail',
-            'adaptability',
-        ];
+        // Generate shift duration between 2 to 8 hours
+        $duration = rand(2, 8);
+        $endTime = $startTime->copy()->addHours($duration);
+
+        // Ensure minimum 2 hour difference and calculate duration
+        if ($endTime->diffInHours($startTime) < 2) {
+            $endTime = $startTime->copy()->addHours(2);
+        }
+
+        // Calculate hourly rate
+        $hourlyRate = $this->faker->randomFloat(2, 15, 50);
 
         return [
-            'organization_id' => Organization::factory(),
+            'user_id' => User::factory(),
             'department_id' => Department::factory(),
             'title' => $this->faker->jobTitle(),
             'description' => $this->faker->paragraph(),
-            'pay_rate' => $this->faker->randomFloat(2, 15, 50),
-            'shift_date' => $startDate,
-            'shift_startTime' => $startTime->format('H:i:s'),
-            'shift_endTime' => $endTime->format('H:i:s'),
-            'break_duration' => $this->faker->randomFloat(2, 0.5, 1),
-            'shift_location' => $this->faker->address(),
-            'required_skills' => $this->faker->randomElements($skills, $this->faker->numberBetween(2, 5)),
-            'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
-            'status' => $this->faker->randomElement(['draft', 'published', 'assigned', 'in_progress', 'completed', 'cancelled']),
-            'published_at' => $this->faker->optional(0.7)->dateTimeBetween('-1 week', 'now'),
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'required_employees' => $this->faker->numberBetween(1, 5),
+            'hourly_rate' => $hourlyRate,
+            'status' => $this->faker->randomElement(['open', 'filled', 'cancelled']),
+            // Add total_hours and total_wage fields if they exist in your shifts table
+            'total_hours' => $endTime->diffInHours($startTime),
+            'total_wage' => $hourlyRate * $endTime->diffInHours($startTime),
         ];
     }
 
-    public function published(): self
+    /**
+     * Indicate that the shift is open.
+     */
+    public function open(): static
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'status' => 'published',
-                'published_at' => now(),
-            ];
-        });
+        return $this->state(fn (array $attributes) => [
+            'status' => 'open',
+        ]);
     }
 
-    public function draft(): self
+    /**
+     * Indicate that the shift is filled.
+     */
+    public function filled(): static
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'status' => 'draft',
-                'published_at' => null,
-            ];
-        });
+        return $this->state(fn (array $attributes) => [
+            'status' => 'filled',
+        ]);
     }
 
-    public function assigned(): self
+    /**
+     * Indicate that the shift is cancelled.
+     */
+    public function cancelled(): static
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'status' => 'assigned',
-                'user_id' => User::factory(),
-            ];
-        });
+        return $this->state(fn (array $attributes) => [
+            'status' => 'cancelled',
+        ]);
     }
-} 
+}

@@ -20,18 +20,31 @@ class ShiftController extends Controller
                 })->where('status', 'open');
             })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->through(function ($shift) {
+                return [
+                    ...$shift->toArray(),
+                    'formatted_hourly_rate' => $shift->formatted_hourly_rate,
+                    'formatted_total_wage' => $shift->formatted_total_wage,
+                    'duration_in_hours' => $shift->duration,
+                ];
+            });
 
         return Inertia::render('Shifts/Index', [
             'shifts' => $shifts,
             'can' => [
-                'create_shift' => Auth::user()->can('create', Shift::class)
+                'create_shift' => Auth::user()->hasRole('administrator')
             ]
         ]);
     }
 
     public function create()
     {
+        if (!Auth::user()->hasRole('administrator')) {
+            return redirect()->route('shifts.index')
+                ->with('error', 'Unauthorized action.');
+        }
+
         $departments = Department::all();
         return Inertia::render('Shifts/Create', [
             'departments' => $departments
@@ -40,6 +53,11 @@ class ShiftController extends Controller
 
     public function store(Request $request)
     {
+        if (!Auth::user()->hasRole('administrator')) {
+            return redirect()->route('shifts.index')
+                ->with('error', 'Unauthorized action.');
+        }
+
         try {
             \Log::info('Received shift data:', $request->all());
             
@@ -83,8 +101,16 @@ class ShiftController extends Controller
             
             $shift->load(['department', 'applications.user', 'comments.user', 'user']);
             
+            // Add wage calculations to the response
+            $shiftData = [
+                ...$shift->toArray(),
+                'formatted_hourly_rate' => $shift->formatted_hourly_rate,
+                'formatted_total_wage' => $shift->formatted_total_wage,
+                'duration_in_hours' => $shift->duration,
+            ];
+            
             \Log::info('Loaded shift data:', [
-                'shift' => $shift->toArray(),
+                'shift' => $shiftData,
                 'has_department' => $shift->department !== null,
                 'has_comments' => $shift->comments !== null,
                 'comments_count' => $shift->comments ? $shift->comments->count() : 0,
@@ -92,13 +118,13 @@ class ShiftController extends Controller
             ]);
 
             return Inertia::render('Shifts/Show', [
-                'shift' => $shift,
+                'shift' => $shiftData,
                 'can' => [
                     'user' => Auth::user(),
-                    'edit_shift' => Auth::user()->can('update', $shift),
-                    'delete_shift' => Auth::user()->can('delete', $shift),
-                    'apply_shift' => Auth::user()->can('apply', $shift),
-                    'approve_application' => Auth::user()->can('approveApplication', $shift)
+                    'edit_shift' => Auth::user()->hasRole('administrator'),
+                    'delete_shift' => Auth::user()->hasRole('administrator'),
+                    'apply_shift' => Auth::user()->hasRole('employee'),
+                    'approve_application' => Auth::user()->hasRole('administrator')
                 ]
             ]);
         } catch (\Exception $e) {
@@ -114,6 +140,11 @@ class ShiftController extends Controller
 
     public function edit(Shift $shift)
     {
+        if (!Auth::user()->hasRole('administrator')) {
+            return redirect()->route('shifts.index')
+                ->with('error', 'Unauthorized action.');
+        }
+
         $departments = Department::all();
         return Inertia::render('Shifts/Edit', [
             'shift' => $shift,
@@ -123,6 +154,11 @@ class ShiftController extends Controller
 
     public function update(Request $request, Shift $shift)
     {
+        if (!Auth::user()->hasRole('administrator')) {
+            return redirect()->route('shifts.index')
+                ->with('error', 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -140,6 +176,11 @@ class ShiftController extends Controller
 
     public function destroy(Shift $shift)
     {
+        if (!Auth::user()->hasRole('administrator')) {
+            return redirect()->route('shifts.index')
+                ->with('error', 'Unauthorized action.');
+        }
+
         $shift->delete();
 
         return redirect()->route('shifts.index')
@@ -148,7 +189,7 @@ class ShiftController extends Controller
 
     public function apply(Shift $shift)
     {
-        if (!Auth::user()->isEmployee()) {
+        if (!Auth::user()->hasRole('employee')) {
             return redirect()->back()
                 ->with('error', 'Only employees can apply for shifts.');
         }
@@ -174,7 +215,7 @@ class ShiftController extends Controller
 
     public function approveApplication(Shift $shift, Request $request)
     {
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::user()->hasRole('administrator')) {
             return redirect()->back()
                 ->with('error', 'Only administrators can approve applications.');
         }

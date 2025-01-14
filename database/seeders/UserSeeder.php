@@ -3,41 +3,40 @@
 namespace Database\Seeders;
 
 use App\Models\Organization;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
         Organization::all()->each(function ($organization) {
-            // Get roles
-            $adminRole = Role::where('organization_id', $organization->id)
-                            ->where('slug', 'admin')
-                            ->first();
-            
-            $employeeRole = Role::where('organization_id', $organization->id)
-                               ->where('slug', 'employee')
-                               ->first();
-
-            // Create admin users
-            User::factory()
-                ->count(2)
-                ->create([
-                    'organization_id' => $organization->id,
-                    'role_id' => $adminRole->id,
-                    'is_active' => true,
-                ]);
+            // Create admin users with predictable emails
+            for ($i = 1; $i <= 2; $i++) {
+                User::factory()
+                    ->create([
+                        'organization_id' => $organization->id,
+                        'password' => Hash::make('password'),
+                        'email' => 'admin' . $i . '@' . $organization->domain,
+                        'name' => 'Admin ' . $i . ' - ' . $organization->name,
+                        'role' => 'admin'
+                    ])
+                    ->assignRole('administrator-' . $organization->id);
+            }
 
             // Create employee users
-            User::factory()
-                ->count(5)
-                ->create([
-                    'organization_id' => $organization->id,
-                    'role_id' => $employeeRole->id,
-                    'is_active' => true,
-                ]);
+            for ($i = 1; $i <= 5; $i++) {
+                User::factory()
+                    ->create([
+                        'organization_id' => $organization->id,
+                        'password' => Hash::make('password'),
+                        'email' => 'employee' . $i . '@' . $organization->domain,
+                        'name' => 'Employee ' . $i . ' - ' . $organization->name,
+                        'role' => 'employee'
+                    ])
+                    ->assignRole('employee-' . $organization->id);
+            }
         });
     }
 } 

@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'role',
         'department_id',
+        'organization_id',
     ];
 
     /**
@@ -72,11 +73,16 @@ class User extends Authenticatable
 
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return $this->hasRole('administrator-' . $this->organization_id);
     }
 
     public function isEmployee()
     {
-        return $this->role === 'employee';
+        return $this->hasRole('employee-' . $this->organization_id);
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
     }
 }

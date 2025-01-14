@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Navbar from '@/Layouts/Navbar';
 import { Footer } from '@/Layouts/Footer';
+import { Toaster } from "@/Components/ui/toaster";
 
 export default function AuthenticatedLayout({ user, header, children }) {
     return (
@@ -26,6 +27,7 @@ export default function AuthenticatedLayout({ user, header, children }) {
             </div>
 
             <Footer />
+            <Toaster />
         </div>
     );
 }

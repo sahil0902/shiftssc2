@@ -9,8 +9,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-
-
+// Public Routes
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -20,6 +19,32 @@ Route::get('/', function () {
     ]);
 });
 
+// Footer Pages (Public)
+Route::get('/about', function () {
+    return Inertia::render('About');
+})->name('about');
+
+Route::get('/help', function () {
+    return Inertia::render('Help');
+})->name('help');
+
+Route::get('/contact', function () {
+    return Inertia::render('Contact');
+})->name('contact');
+
+Route::get('/faq', function () {
+    return Inertia::render('FAQ');
+})->name('faq');
+
+Route::get('/privacy', function () {
+    return Inertia::render('Privacy');
+})->name('privacy');
+
+Route::get('/terms', function () {
+    return Inertia::render('Terms');
+})->name('terms');
+
+// Authenticated Routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
