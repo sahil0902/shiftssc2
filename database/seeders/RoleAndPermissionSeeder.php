@@ -3,64 +3,78 @@
 namespace Database\Seeders;
 
 use App\Models\Organization;
-use App\Models\Permission;
-use App\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 class RoleAndPermissionSeeder extends Seeder
 {
     public function run(): void
     {
+        // Reset cached roles and permissions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Clear existing roles and permissions
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('role_has_permissions')->truncate();
+        DB::table('model_has_roles')->truncate();
+        DB::table('model_has_permissions')->truncate();
+        DB::table('roles')->truncate();
+        DB::table('permissions')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
         $permissions = [
-            ['name' => 'View Dashboard', 'slug' => 'view-dashboard'],
-            ['name' => 'Manage Users', 'slug' => 'manage-users'],
-            ['name' => 'View Users', 'slug' => 'view-users'],
-            ['name' => 'Create Users', 'slug' => 'create-users'],
-            ['name' => 'Edit Users', 'slug' => 'edit-users'],
-            ['name' => 'Delete Users', 'slug' => 'delete-users'],
-            ['name' => 'Manage Roles', 'slug' => 'manage-roles'],
-            ['name' => 'View Roles', 'slug' => 'view-roles'],
-            ['name' => 'Create Roles', 'slug' => 'create-roles'],
-            ['name' => 'Edit Roles', 'slug' => 'edit-roles'],
-            ['name' => 'Delete Roles', 'slug' => 'delete-roles'],
-            ['name' => 'Manage Shifts', 'slug' => 'manage-shifts'],
-            ['name' => 'View Shifts', 'slug' => 'view-shifts'],
-            ['name' => 'Create Shifts', 'slug' => 'create-shifts'],
-            ['name' => 'Edit Shifts', 'slug' => 'edit-shifts'],
-            ['name' => 'Delete Shifts', 'slug' => 'delete-shifts'],
-            ['name' => 'Apply To Shifts', 'slug' => 'apply-to-shifts'],
+            'view-dashboard',
+            'manage-users',
+            'view-users',
+            'create-users',
+            'edit-users',
+            'delete-users',
+            'manage-roles',
+            'view-roles',
+            'create-roles',
+            'edit-roles',
+            'delete-roles',
+            'manage-shifts',
+            'view-shifts',
+            'create-shifts',
+            'edit-shifts',
+            'delete-shifts',
+            'apply-to-shifts',
         ];
 
-        $createdPermissions = collect($permissions)->map(function ($permission) {
-            return Permission::create($permission);
-        });
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission, 'guard_name' => 'web']);
+        }
 
         $organizations = Organization::all();
 
-        $organizations->each(function ($organization) use ($createdPermissions) {
+        foreach ($organizations as $organization) {
+            // Create administrator role with organization-specific name
             $adminRole = Role::create([
-                'organization_id' => $organization->id,
-                'name' => 'Admin',
-                'slug' => 'admin',
-                'description' => 'Administrator role with full access',
+                'name' => 'administrator-' . $organization->id,
+                'guard_name' => 'web',
+                'organization_id' => $organization->id
             ]);
 
-            $adminRole->permissions()->attach($createdPermissions);
+            // Assign all permissions to admin
+            $adminRole->givePermissionTo($permissions);
 
+            // Create employee role with organization-specific name
             $employeeRole = Role::create([
-                'organization_id' => $organization->id,
-                'name' => 'Employee',
-                'slug' => 'employee',
-                'description' => 'Regular employee role',
+                'name' => 'employee-' . $organization->id,
+                'guard_name' => 'web',
+                'organization_id' => $organization->id
             ]);
 
-            $employeeRole->permissions()->attach(
-                $createdPermissions->whereIn('slug', [
-                    'view-dashboard',
-                    'view-shifts',
-                    'apply-to-shifts',
-                ])
-            );
-        });
+            // Assign limited permissions to employee
+            $employeeRole->givePermissionTo([
+                'view-dashboard',
+                'view-shifts',
+                'apply-to-shifts'
+            ]);
+        }
     }
 } 

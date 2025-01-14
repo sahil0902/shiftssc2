@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Organization;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,11 +37,22 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // Get the default organization (ShiftsSync Demo)
+        $organization = Organization::where('slug', 'shiftssync-demo')->first();
+        if (!$organization) {
+            $organization = Organization::first();
+        }
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'organization_id' => $organization->id,
+            'role' => 'employee'
         ]);
+
+        // Assign the employee role for this organization
+        $user->assignRole('employee-' . $organization->id);
 
         event(new Registered($user));
 

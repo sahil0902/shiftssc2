@@ -64,12 +64,14 @@ export default function Index({ can = {}, shifts = { data: [], current_page: 1, 
                         >
                             View
                         </Link>
+                        {can.update_shift && (
                         <Link
                             href={route('shifts.edit', row.original.id)}
                             className="text-yellow-600 hover:text-yellow-800"
                         >
-                            Edit
-                        </Link>
+                                Edit
+                            </Link>
+                        )}
                     </div>
                 );
             },

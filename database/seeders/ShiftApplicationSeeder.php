@@ -13,49 +13,32 @@ class ShiftApplicationSeeder extends Seeder
     public function run(): void
     {
         Organization::all()->each(function ($organization) {
-            // Get published shifts for this organization
-            $publishedShifts = Shift::where('organization_id', $organization->id)
-                ->where('status', 'published')
+            // Get open shifts for this organization
+            $openShifts = Shift::where('organization_id', $organization->id)
+                ->where('status', 'open')
                 ->get();
 
             // Get employees for this organization
-            $employees = User::where('organization_id', $organization->id)
-                ->whereHas('role', function ($query) {
-                    $query->where('slug', 'employee');
-                })
-                ->get();
+            $employees = User::role('employee-' . $organization->id)->get();
 
-            // Create applications for each published shift
-            $publishedShifts->each(function ($shift) use ($employees) {
-                // Create 1-3 pending applications
-                ShiftApplication::factory()
-                    ->count(rand(1, 3))
-                    ->pending()
-                    ->create([
+            // Create applications for each open shift
+            $openShifts->each(function ($shift) use ($employees) {
+                // Get a random subset of employees for this shift
+                $applicants = $employees->random(min(6, $employees->count()))->pluck('id')->toArray();
+                $statuses = ['pending', 'approved', 'rejected'];
+                $currentIndex = 0;
+
+                // Create applications with different statuses
+                foreach ($applicants as $employeeId) {
+                    ShiftApplication::create([
                         'shift_id' => $shift->id,
-                        'user_id' => $employees->random()->id,
+                        'user_id' => $employeeId,
+                        'status' => $statuses[$currentIndex % 3],
+                        'notes' => fake()->optional()->paragraph(),
+                        'reviewed_at' => fake()->optional()->dateTimeBetween('-1 week', 'now'),
+                        'reviewed_by' => fake()->optional()->randomElement($employees->pluck('id')->toArray()),
                     ]);
-
-                // Create 0-2 approved applications
-                if (rand(0, 1)) {
-                    ShiftApplication::factory()
-                        ->count(rand(1, 2))
-                        ->approved()
-                        ->create([
-                            'shift_id' => $shift->id,
-                            'user_id' => $employees->random()->id,
-                        ]);
-                }
-
-                // Create 0-2 rejected applications
-                if (rand(0, 1)) {
-                    ShiftApplication::factory()
-                        ->count(rand(1, 2))
-                        ->rejected()
-                        ->create([
-                            'shift_id' => $shift->id,
-                            'user_id' => $employees->random()->id,
-                        ]);
+                    $currentIndex++;
                 }
             });
         });
