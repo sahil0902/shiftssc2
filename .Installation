@@ -1,0 +1,4 @@
+npm install classnames
+npx shadcn@latest init
+
+composer require tightenco/ziggy
