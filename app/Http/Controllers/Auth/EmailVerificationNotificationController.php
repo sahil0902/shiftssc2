@@ -10,6 +10,7 @@ class EmailVerificationNotificationController extends Controller
 {
     /**
      * Send a new email verification notification.
+     * for future use 
      */
     public function store(Request $request): RedirectResponse
     {

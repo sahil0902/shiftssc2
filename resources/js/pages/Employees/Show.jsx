@@ -7,16 +7,16 @@ import { ArrowLeft, Building2, Calendar, Mail } from 'lucide-react';
 import { Badge } from '@/Components/ui/badge';
 import { format } from 'date-fns';
 
-export default function Show({ auth, employee }) {
+export default function Show({ auth, employee }) { // Main component to display employee details
     return (
         <AuthenticatedLayout
-            user={auth.user}
+            user={auth.user} // Passing authenticated user data to the layout
             header={
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link
-                            href={route('employees.index')}
-                            className="text-gray-500 hover:text-gray-700"
+                            href={route('employees.index')} // Link to the employee index page
+                            className="text-gray-500 hover:text-gray-700" // Styling for the link
                         >
                             <ArrowLeft className="h-5 w-5" />
                         </Link>
@@ -72,8 +72,8 @@ export default function Show({ auth, employee }) {
                                         <div className="flex flex-wrap gap-2">
                                             {employee.roles?.map((role) => (
                                                 <Badge
-                                                    key={role.id}
-                                                    variant="secondary"
+                                                    key={role.id} // Unique key for each badge
+                                                    variant="secondary" // Badge variant
                                                 >
                                                     {role.name}
                                                 </Badge>
@@ -84,17 +84,17 @@ export default function Show({ auth, employee }) {
                             </CardContent>
                         </Card>
 
-                        {employee.shifts?.length > 0 && (
-                            <Card>
+                        {employee.shifts?.length > 0 && ( // Conditional rendering for shifts section
+                            <Card> // Card for recent shifts
                                 <CardHeader>
                                     <CardTitle>Recent Shifts</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-4">
-                                        {employee.shifts.map((shift) => (
+                                    <div className="space-y-4"> // Spacing between shift items
+                                        {employee.shifts.map((shift) => ( // Mapping through shifts to display each shift
                                             <div
-                                                key={shift.id}
-                                                className="flex items-center justify-between"
+                                                key={shift.id} // Unique key for each shift
+                                                className="flex items-center justify-between" // Flex container for shift details
                                             >
                                                 <div>
                                                     <p className="font-medium">
@@ -109,14 +109,14 @@ export default function Show({ auth, employee }) {
                                                     </div>
                                                 </div>
                                                 <Link
-                                                    href={route(
+                                                    href={route( // Link to view shift details
                                                         'shifts.show',
                                                         shift.id
                                                     )}
                                                 >
                                                     <Button
-                                                        variant="ghost"
-                                                        size="sm"
+                                                        variant="ghost" // Ghost variant for button
+                                                        size="sm" // Small size for button
                                                     >
                                                         View
                                                     </Button>

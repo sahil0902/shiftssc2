@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Models;
+namespace App\Models; // Define the namespace for the User model
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Factories\HasFactory; // Import HasFactory trait for factory support
+use Illuminate\Foundation\Auth\User as Authenticatable; // Extend the Authenticatable class for user authentication
+use Illuminate\Notifications\Notifiable; // Import Notifiable trait for notification support
+use Laravel\Sanctum\HasApiTokens; // Import HasApiTokens trait for API token management
+use Spatie\Permission\Traits\HasRoles; // Import HasRoles trait for role management
 
-class User extends Authenticatable
+class User extends Authenticatable // Define the User class extending Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles; // Use necessary traits for functionality
 
     /**
      * The attributes that are mass assignable.
@@ -18,12 +18,12 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'department_id',
-        'organization_id',
+        'name', // The user's name
+        'email', // The user's email address
+        'password', // The user's password
+        'role', // The user's role within the organization
+        'department_id', // The ID of the department the user belongs to
+        'organization_id', // The ID of the organization the user belongs to
     ];
 
     /**
@@ -32,8 +32,8 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password', // Hide the password attribute for security
+        'remember_token', // Hide the remember token for security
     ];
 
     /**
@@ -42,46 +42,70 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'email_verified_at' => 'datetime', // Cast email_verified_at to a datetime object
     ];
 
     /**
      * Get the department that the user belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function department()
+    public function department() // Define the relationship with the Department model
     {
-        return $this->belongsTo(Department::class);
+        return $this->belongsTo(Department::class); // Return the department associated with this user
     }
 
     /**
      * Get the shifts for the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function shifts()
+    public function shifts() // Define the relationship for shifts associated with the user
     {
-        return $this->belongsToMany(Shift::class, 'shift_applications')
-            ->withPivot(['status'])
-            ->withTimestamps();
+        return $this->belongsToMany(Shift::class, 'shift_applications') // Many-to-many relationship with Shift model
+            ->withPivot(['status']) // Include the status in the pivot table
+            ->withTimestamps(); // Automatically manage timestamps for the pivot table
     }
 
-    public function appliedShifts()
+    /**
+     * Get the shifts that the user has applied for.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function appliedShifts() // Define the relationship for applied shifts
     {
-        return $this->belongsToMany(Shift::class, 'shift_applications')
-            ->withPivot(['status'])
-            ->withTimestamps();
+        return $this->belongsToMany(Shift::class, 'shift_applications') // Many-to-many relationship with Shift model
+            ->withPivot(['status']) // Include the status in the pivot table
+            ->withTimestamps(); // Automatically manage timestamps for the pivot table
     }
 
-    public function isAdmin()
+    /**
+     * Check if the user has admin role.
+     *
+     * @return bool
+     */
+    public function isAdmin() // Method to check if the user is an admin
     {
-        return $this->hasRole('administrator-' . $this->organization_id);
+        return $this->hasRole('administrator-' . $this->organization_id); // Check for admin role based on organization ID
     }
 
-    public function isEmployee()
+    /**
+     * Check if the user has employee role.
+     *
+     * @return bool
+     */
+    public function isEmployee() // Method to check if the user is an employee
     {
-        return $this->hasRole('employee-' . $this->organization_id);
+        return $this->hasRole('employee-' . $this->organization_id); // Check for employee role based on organization ID
     }
 
-    public function organization()
+    /**
+     * Get the organization that the user belongs to.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function organization() // Define the relationship with the Organization model
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(Organization::class); // Return the organization associated with this user
     }
 }

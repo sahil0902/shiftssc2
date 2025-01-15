@@ -12,6 +12,7 @@ class EmailVerificationPromptController extends Controller
 {
     /**
      * Display the email verification prompt.
+     * for future use 
      */
     public function __invoke(Request $request): RedirectResponse|Response
     {

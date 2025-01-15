@@ -1,3 +1,7 @@
+<?php
+/*
+for future development when i will add a shift application system
+*/
 namespace App\Notifications;
 
 use App\Models\Shift;
