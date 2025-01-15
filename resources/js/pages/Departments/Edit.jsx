@@ -23,17 +23,17 @@ export default function Edit({ auth, department }) {
             user={auth.user} // Passing authenticated user data to the layout
             header={
                 <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Edit Department // Header for the edit page
+                    Edit Department 
                 </h2>
             }
         >
-            <Head title="Edit Department" /> // Setting the document title
+            <Head title="Edit Department" /> 
 
-            <div className="py-12"> // Main container with padding
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8"> // Centering the content with responsive padding
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg"> // Card-like container for the form
+            <div className="py-12"> 
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8"> 
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg"> 
                         <div className="p-6"> // Inner container with padding
-                            <form onSubmit={submit} className="space-y-6"> // Form element with submit handler and spacing
+                            <form onSubmit={submit} className="space-y-6"> 
                                 <div>
                                     <label
                                         htmlFor="name" // Associating label with input field
@@ -50,15 +50,15 @@ export default function Edit({ auth, department }) {
                                         }
                                         required // Making the input field required
                                     />
-                                    <InputError message={errors.name} /> // Displaying error message if validation fails
+                                    <InputError message={errors.name} /> 
                                 </div>
 
-                                <div className="flex justify-end"> // Flex container for button alignment
+                                <div className="flex justify-end"> 
                                     <Button
                                         type="submit" // Button type
                                         disabled={processing} // Disabling button while processing
                                     >
-                                        Update Department // Button text
+                                        Update Department 
                                     </Button>
                                 </div>
                             </form>
