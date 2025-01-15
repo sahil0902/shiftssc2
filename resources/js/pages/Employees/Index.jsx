@@ -37,23 +37,23 @@ export default function Index() {
             header: 'Department', // Header title for the column
             cell: ({ row }) => row.original.department?.name || 'Not Assigned', // Display department name or 'Not Assigned'
         },
-        {
-            accessorKey: 'roles', // Key for accessing employee roles
-            header: 'Role', // Header title for the column
-            cell: ({ row }) => {
-                const roles = row.original.roles || []; // Get roles or default to an empty array
-                return roles.map(role => ( // Map over roles to create Badge components
-                    <Badge key={role.id} variant="secondary" className="mr-1">
-                        {role.name} // Display role name
-                    </Badge>
-                ));
-            },
-        },
+        // {
+        //     accessorKey: 'roles', // Key for accessing employee roles
+        //     header: 'Role', // Header title for the column
+        //     cell: ({ row }) => {
+        //         const roles = row.original.roles || []; // Get roles or default to an empty array
+        //         return roles.map(role => ( // Map over roles to create Badge components
+        //             <Badge key={role.id} variant="secondary" className="mr-1">
+        //                 {role.name} 
+        //             </Badge>
+        //         ));
+        //     },
+        // },
         {
             id: 'actions', // Unique ID for actions column
             cell: ({ row }) => { // Render actions for each employee
                 return (
-                    <div className="flex items-center gap-2"> // Flex container for action buttons
+                    <div className="flex items-center gap-2"> 
                         <Link
                             href={route('employees.show', row.original.id)} // Link to view employee details
                             className="text-blue-600 hover:text-blue-800" // Styling for the link
@@ -80,16 +80,16 @@ export default function Index() {
 
     return (
         <AuthenticatedLayout>
-            <Head title="Employees" /> // Set the page title
+            <Head title="Employees" /> 
 
-            <div className="py-12"> // Main container with padding
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8"> // Centered container with responsive padding
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg"> // Card-like container
-                        <div className="p-6 text-gray-900"> // Inner container with padding and text color
-                            <div className="flex items-center justify-between mb-6"> // Flex container for header
-                                <h2 className="text-xl font-semibold">Employees</h2> // Title for the page
-                                <Link href={route('employees.create')}> // Link to create a new employee
-                                    <Button>Create Employee</Button> // Button for creating an employee
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8"> 
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg"> 
+                        <div className="p-6 text-gray-900"> 
+                            <div className="flex items-center justify-between mb-6"> 
+                                <h2 className="text-xl font-semibold">Employees</h2> 
+                                <Link href={route('employees.create')}> 
+                                    <Button>Create Employee</Button> 
                                 </Link>
                             </div>
 

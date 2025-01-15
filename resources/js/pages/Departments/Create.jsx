@@ -23,23 +23,24 @@ export default function Create({ auth }) {
             user={auth.user} // Passing authenticated user data to the layout
             header={
                 <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Create Department // Header for the create department page
+                    Create Department 
                 </h2>
             }
         >
-            <Head title="Create Department" /> // Setting the page title
-
-            <div className="py-12"> // Main container with padding
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8"> // Centering the content with max width
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg"> // Card-like container for the form
-                        <div className="p-6"> // Padding for the inner content
-                            <form onSubmit={submit} className="space-y-6"> // Form with spacing between elements
+             {/* Setting the page title */}
+            <Head title="Create Department" /> 
+            {/* // Main container with padding */}
+            <div className="py-12"> 
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8"> 
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg"> 
+                        <div className="p-6"> 
+                            <form onSubmit={submit} className="space-y-6"> 
                                 <div>
                                     <label
                                         htmlFor="name" // Associating label with input
                                         className="block text-sm font-medium text-gray-700" // Styling for the label
                                     >
-                                        Name // Label text for the input field
+                                        Name 
                                     </label>
                                     <Input
                                         id="name" // Input field ID
@@ -50,15 +51,15 @@ export default function Create({ auth }) {
                                         }
                                         required // Making the input field required
                                     />
-                                    <InputError message={errors.name} /> // Displaying error message if validation fails
+                                    <InputError message={errors.name} /> 
                                 </div>
 
-                                <div className="flex justify-end"> // Flex container for button alignment
+                                <div className="flex justify-end"> 
                                     <Button
                                         type="submit" // Button type for form submission
                                         disabled={processing} // Disabling button while processing
                                     >
-                                        Create Department // Button text
+                                        Create Department 
                                     </Button>
                                 </div>
                             </form>

@@ -62,8 +62,8 @@ export default function Create({ auth, departments }) {
             user={auth.user} // Passing authenticated user to layout
             header="Create Shift" // Setting the header for the layout
         >
-            <Head title="Create Shift" /> // Setting the document title
-            <FlashMessage /> // Displaying flash messages
+            <Head title="Create Shift" /> 
+            <FlashMessage /> 
 
             <div className="py-12"> {/* Main container with padding */}
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8"> {/* Centering the content */}
