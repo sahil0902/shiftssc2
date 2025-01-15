@@ -49,8 +49,8 @@ Our feature tests cover end-to-end functionality:
 - **Password Updates**: Comprehensive validation of password changes
 
 Current test coverage:
-- 54 tests passing
-- 137 assertions
+- 62 tests passing
+- 165 assertions
 - Tests complete in ~2.4 seconds
 
 These tests help us:

@@ -129,4 +129,85 @@ class AuthTest extends TestCase
         // Assert that the user is no longer authenticated
         $this->assertGuest();
     }
+
+    // Test to verify that registration fails with invalid data
+    public function test_cannot_register_with_invalid_data()
+    {
+        $userData = [
+            'name' => '', // Empty name
+            'email' => 'invalid-email', // Invalid email format
+            'password' => '123', // Too short password
+            'password_confirmation' => '456', // Non-matching confirmation
+            'department_id' => $this->department->id
+        ];
+
+        $response = $this->post('/register', $userData);
+        $response->assertSessionHasErrors(['name', 'email', 'password']);
+        $this->assertDatabaseMissing('users', ['email' => 'invalid-email']);
+    }
+
+    // Test to verify that a user cannot register with an existing email
+    public function test_cannot_register_with_existing_email()
+    {
+        $existingUser = User::factory()->create([
+            'email' => 'existing@example.com',
+            'department_id' => $this->department->id,
+            'organization_id' => $this->organization->id
+        ]);
+
+        $userData = [
+            'name' => 'New User',
+            'email' => 'existing@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'department_id' => $this->department->id
+        ];
+
+        $response = $this->post('/register', $userData);
+        $response->assertSessionHasErrors(['email']);
+    }
+
+    // Test to verify that a user can request a password reset
+    public function test_can_request_password_reset()
+    {
+        $user = User::factory()->create();
+        
+        $response = $this->post('/forgot-password', [
+            'email' => $user->email
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => $user->email
+        ]);
+    }
+
+    // Test to verify that a user cannot access protected routes when not authenticated
+    public function test_cannot_access_protected_routes_when_not_authenticated()
+    {
+        $response = $this->get('/dashboard');
+        $response->assertRedirect('/login');
+    }
+
+    // Test to verify remember me functionality
+    public function test_remember_me_functionality()
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('password123'),
+            'department_id' => $this->department->id,
+            'organization_id' => $this->organization->id
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password123',
+            'remember' => 'on'
+        ]);
+
+        $response->assertRedirect('/dashboard');
+        $this->assertAuthenticatedAs($user);
+        
+        // Check if remember_token is set in the database
+        $this->assertNotNull($user->fresh()->remember_token);
+    }
 }

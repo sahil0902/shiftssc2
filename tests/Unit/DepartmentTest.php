@@ -159,4 +159,92 @@ class DepartmentTest extends TestCase
         // Assert that the casual shifts setting is now disabled
         $this->assertFalse($department->fresh()->allows_casual_shifts);
     }
+
+    // Test to verify that a department can be soft deleted
+    public function test_can_soft_delete_department()
+    {
+        $department = Department::factory()->create([
+            'organization_id' => $this->organization->id
+        ]);
+
+        $department->delete();
+
+        $this->assertSoftDeleted($department);
+        $this->assertTrue($department->trashed());
+    }
+
+    // Test to verify that department name is required
+    public function test_department_name_is_required()
+    {
+        $this->expectException(\Illuminate\Database\QueryException::class);
+
+        Department::create([
+            'name' => null,
+            'organization_id' => $this->organization->id
+        ]);
+    }
+
+    // Test to verify that a department can have multiple users
+    public function test_department_can_have_multiple_users()
+    {
+        $department = Department::factory()->create([
+            'organization_id' => $this->organization->id
+        ]);
+
+        $users = User::factory()->count(3)->create([
+            'department_id' => $department->id,
+            'organization_id' => $this->organization->id
+        ]);
+
+        $this->assertEquals(3, $department->users()->count());
+        foreach ($users as $user) {
+            $this->assertTrue($department->users->contains($user));
+        }
+    }
+
+    // Test to verify that department name is unique within organization scope
+    public function test_department_name_unique_within_organization_scope()
+    {
+        $department1 = Department::factory()->create([
+            'organization_id' => $this->organization->id,
+            'name' => 'IT Department'
+        ]);
+
+        // Should be able to create department with same name in different organization
+        $otherOrganization = Organization::factory()->create();
+        $department2 = Department::factory()->create([
+            'organization_id' => $otherOrganization->id,
+            'name' => 'IT Department'
+        ]);
+
+        // Assert both departments exist with the same name but different organizations
+        $this->assertDatabaseHas('departments', [
+            'name' => 'IT Department',
+            'organization_id' => $this->organization->id
+        ]);
+        
+        $this->assertDatabaseHas('departments', [
+            'name' => 'IT Department',
+            'organization_id' => $otherOrganization->id
+        ]);
+
+        // Verify we can't create another department with the same name in the same organization
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        Department::create([
+            'name' => 'IT Department',
+            'organization_id' => $this->organization->id
+        ]);
+    }
+
+    // Test to verify that department maintains organization relationship
+    public function test_department_maintains_organization_relationship()
+    {
+        $department = Department::factory()->create([
+            'organization_id' => $this->organization->id
+        ]);
+
+        $this->assertInstanceOf(Organization::class, $department->organization);
+        $this->assertEquals($this->organization->id, $department->organization->id);
+        $this->assertEquals($this->organization->name, $department->organization->name);
+    }
 }
