@@ -23,11 +23,18 @@ class ErrorBoundary extends React.Component {
         console.error('ErrorBoundary caught an error:', error, errorInfo); // Log error details
     }
 
+    componentDidUpdate(prevProps) {
+        // Reset error state when shift data changes
+        if (prevProps.shift !== this.props.shift) {
+            this.setState({ hasError: false });
+        }
+    }
+
     render() {
         if (this.state.hasError) {
             return (
                 <div className="p-4 text-red-500">
-                    Something went wrong while loading the shift details. {/* Error message */}
+                    Something went wrong while loading the shift details. Please refresh the page.
                 </div>
             );
         }
@@ -50,22 +57,26 @@ export default function Show({ can = {}, shift }) {
     const handleSubmit = (e) => {
         e.preventDefault(); // Prevent default form submission
         console.log('Submitting comment:', data); // Log comment data
+        
+        // Show loading toast
+        const loadingToast = toast.loading('Adding comment...');
+        
         post(route('shifts.comments.store', shift.id), {
             onSuccess: () => {
                 console.log('Comment submitted successfully'); // Log success
                 reset('content'); // Reset comment input
-                toast({
-                    title: "Success",
-                    description: "Comment added successfully", // Success notification
-                });
+                // Dismiss loading toast and show success
+                toast.dismiss(loadingToast);
+                toast.success('Comment added successfully');
+                
+                // Force a page reload to refresh the comments
+                window.location.reload();
             },
             onError: (errors) => {
                 console.error('Comment submission errors:', errors); // Log errors
-                toast({
-                    title: "Error",
-                    description: "Failed to add comment", // Error notification
-                    variant: "destructive",
-                });
+                // Dismiss loading toast and show error
+                toast.dismiss(loadingToast);
+                toast.error('Failed to add comment: ' + (errors.content || 'Unknown error'));
             },
             preserveScroll: true, // Preserve scroll position on post
         });
