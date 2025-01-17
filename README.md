@@ -328,11 +328,6 @@ The `database/seeders/RoleAndPermissionSeeder.php` defines permissions and assig
 
 -  **Employee:** Basic permissions like viewing dashboards.
 
-```css
-
-/* Example code for RoleAndPermissionSeeder */
-
-```
 
 -  **Role Assignment:**
 
