@@ -50,7 +50,7 @@ php  artisan  db:seed
 
 npm  install
 
-  
+npm install class-variance-authority
 
 # Development - in a new terminal after php artisan serve
 
