@@ -508,7 +508,7 @@ const Login = () => {
 
   
 
-ShiftsSync v2 employs a well-normalized database design (3NF) to ensure data integrity, efficient queries, and scalability. This approach solves the problem of data redundancy by ensuring that each piece of information is stored in only one place, which minimizes inconsistencies and simplifies data management. The use of Eloquent relationships allows for intuitive data retrieval and manipulation, making it easier to manage complex relationships between users, departments, organizations, and shifts. However, the limitation of this design is that it may introduce complexity in query construction, especially for developers unfamiliar with Eloquent's relationship handling. Despite this, the benefits of improved data integrity and maintainability outweigh the challenges, making it a suitable choice for a robust application.
+my webapp employs a well-normalized database design (3NF) to ensure data integrity, efficient queries, and scalability. This approach solves the problem of data redundancy by ensuring that each piece of information is stored in only one place, which minimizes inconsistencies and simplifies data management. The use of Eloquent relationships allows for intuitive data retrieval and manipulation, making it easier to manage complex relationships between users, departments, organizations, and shifts. However, the limitation of this design is that it may introduce complexity in query construction, especially for developers unfamiliar with Eloquent's relationship handling. Despite this, the benefits of improved data integrity and maintainability outweigh the challenges, making it a suitable choice for a robust application.
 
   
 
