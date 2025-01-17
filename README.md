@@ -1227,8 +1227,7 @@ class AuthenticationTest extends TestCase
 ### Advanced Git Branching Strategy
 
   
-
-ShiftsSync v2 employs a branching strategy that supports parallel development:
+my webapp alsoemploys a branching strategy that supports parallel development:
 
   
 
