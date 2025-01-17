@@ -85,6 +85,7 @@ php  artisan  test
 
 ShiftsSync v2 leverages **Laravel Sanctum** for lightweight SPA and API authentication and **Spatie's Laravel Permission**for role-based control. This ensures that each user (Admin, Manager, Employee) accesses only their permitted features.
 
+Laravel Sanctum simplifies authentication for single-page applications (SPAs) by providing a lightweight system for token issuance and session management, avoiding the complexities of traditional OAuth. It integrates with Spatie's Laravel Permission package to streamline role-based access control, ensuring users only access authorized features, thus enhancing security. The User model is structured with Eloquent relationships to manage user data efficiently, reducing redundancy and improving data integrity. However, Sanctum may not suit applications needing complex OAuth flows, and as the number of roles increases, management can become cumbersome. Despite these limitations, the combination of Sanctum and Spatie offers robust security, maintainability, and an improved user experience, making it a suitable choice for modern applications.
   
 
 #### Core Components
@@ -507,7 +508,7 @@ const Login = () => {
 
   
 
-ShiftsSync v2 uses a well-normalized database (3NF) with Eloquent relationships ensuring data integrity, efficient queries, and scalability.
+ShiftsSync v2 employs a well-normalized database design (3NF) to ensure data integrity, efficient queries, and scalability. This approach solves the problem of data redundancy by ensuring that each piece of information is stored in only one place, which minimizes inconsistencies and simplifies data management. The use of Eloquent relationships allows for intuitive data retrieval and manipulation, making it easier to manage complex relationships between users, departments, organizations, and shifts. However, the limitation of this design is that it may introduce complexity in query construction, especially for developers unfamiliar with Eloquent's relationship handling. Despite this, the benefits of improved data integrity and maintainability outweigh the challenges, making it a suitable choice for a robust application.
 
   
 
@@ -657,7 +658,8 @@ class DepartmentFactory extends Factory
 
   
 
-The frontend, built with React and integrated with Inertia.js, offers an SPA experience driven by Laravel on the backend.
+ShiftsSync v2 utilizes Laravel Sanctum for lightweight authentication and Spatie's Laravel Permission for role-based access control, ensuring that users (Admins, Managers, Employees) can only access features they are authorized to use. This setup simplifies the authentication process for single-page applications (SPAs) while enhancing security and maintainability. However, it may not be suitable for applications requiring complex OAuth flows, and managing numerous roles can become cumbersome. Despite these limitations, the combination of Sanctum and Spatie provides a robust framework for secure and efficient user management.
+
 
   
 
@@ -730,24 +732,37 @@ Centers content for authentication pages, emphasizing branding.
 
 ```javascript:resources/js/Layouts/GuestLayout.jsx
 
-export default function AuthenticatedLayout({ header, children }) {
+export default function GuestLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Toaster position="top-right" />
-      <Navbar />
-      {header && (
-        <header className="bg-white border-b">
-          <div className="max-w-7xl mx-auto py-8 px-4">
-            {typeof header === 'string' ? <h2 className="text-3xl font-bold">{header}</h2> : header}
-          </div>
-        </header>
-      )}
-      <main className="py-8">
-        <div className="max-w-7xl mx-auto px-4">{children}</div>
-      </main>
-      <Footer />
-    </div>
-  );
+   // Main container with a gradient background and minimum height for full screen
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+            <div className="flex min-h-screen flex-col items-center justify-center py-12 sm:px-6 lg:px-8">
+                {/* Logo and title section */}
+                <div className="mb-8 text-center">
+                    <Link href="/" className="inline-block"> {/* Link to the homepage */}
+                        <img 
+                            src="/logos/logo.jpg"  // Logo image source
+                            alt="ShiftsSync Logo"  // Alternative text for the logo
+                            className="mx-auto h-24 w-auto" // Centering the logo with auto margins and setting its height
+                        />
+                        <h1 className="mt-4 text-3xl font-bold text-primary"> {/* Main title */}
+                            ShiftsSync
+                        </h1>
+                        <p className="mt-1 text-sm text-gray-600"> {/* Subtitle with a brief description */}
+                            Effortless Shift Management, Empowered Teams
+                        </p>
+                    </Link>
+                </div>
+
+                {/* Container for the children components with styling */}
+                <div className="w-full max-w-md">
+                    <div className="rounded-xl bg-white px-8 py-6 shadow-lg ring-1 ring-gray-200"> {/* Card-like appearance */}
+                        {children} {/* Rendering child components passed to the layout */}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 ```
 
@@ -1142,15 +1157,13 @@ export default function Navbar() {
 
 ### Unit Testing
 
-  
-
-A robust testing strategy combines **PHPUnit** for the backend and **Jest** for React components.
+ShiftsSync v2 employs PHPUnit for backend testing to ensure comprehensive test coverage, facilitating early bug detection and maintaining code quality. However, this testing strategy can introduce complexity in managing the testing framework and may require additional setup and maintenance efforts. Despite these limitations, the benefits of improved reliability and confidence in the codebase outweigh the challenges.
 
   
 
 -  **Test Frameworks and Tools:**
 
-Utilize PHPUnit’s `RefreshDatabase` trait, realistic database factories, and mocking of external dependencies.
+Utilise PHPUnit’s `RefreshDatabase` trait, realistic database factories, and mocking of external dependencies.
 
 -  **Test Structure:**
 
