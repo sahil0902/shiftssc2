@@ -653,7 +653,7 @@ class DepartmentFactory extends Factory
 
   
 
-ShiftsSync v2 utilizes Laravel Sanctum for lightweight authentication and Spatie's Laravel Permission for role-based access control, ensuring that users (Admins, Managers, Employees) can only access features they are authorized to use. This setup simplifies the authentication process for single-page applications (SPAs) while enhancing security and maintainability. However, it may not be suitable for applications requiring complex OAuth flows, and managing numerous roles can become cumbersome. Despite these limitations, the combination of Sanctum and Spatie provides a robust framework for secure and efficient user management.
+ShiftsSync v2 utilizes Laravel Sanctum for lightweight authentication and Spatie's Laravel Permission for role-based access control, ensuring that users (Admins, Managers, Employees) can only access features they are authorized to use. This setup simplifies the authentication process for single-page applications (SPAs) while enhancing security and maintainability. However, it might not be suitable for applications requiring complex OAuth flows, and managing numerous roles can become cumbersome. Despite these limitations, the combination of Sanctum and Spatie provides a robust framework for secure and efficient user management.
 
 
   
